@@ -5,19 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mithai Merge Mania</title>
   <style>
-    /* CSS Variables for theming and layout */
+    /* CSS Variables for easy theming */
     :root {
-      /* Using vw for better scaling, adjust base values as needed */
-      --tile-size-base: 18vw; /* Base size relative to viewport width */
-      --gap-base: 2vw;        /* Base gap relative to viewport width */
-      --max-board-width: 400px; /* Max width for larger screens */
-
-      /* Color and font variables */
-      --bg-color: #f5eee6;
-      --board-bg: #fff3e0;
+      --tile-size: 80px; /* Base size, adjusts with viewport */
+      --gap: 10px;
+      --bg-color: #f5eee6; /* Page background */
+      --board-bg: #fff3e0; /* Game board background */
       --tile-bg: #ffe0b2; /* Default tile background */
-      --font-color: #4e342e; /* Define the font color value */
-      --font-family: 'Segoe UI', sans-serif;
+      --font-color: #4e342e; /* Dark brown text */
+      --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Clean sans-serif font */
     }
 
     /* Basic Reset */
@@ -29,162 +25,231 @@
 
     /* Body Styling */
     body {
-      background: url('https://www.transparenttextures.com/patterns/wood-pattern.png') repeat;
+      background: url('https://www.transparenttextures.com/patterns/wood-pattern.png') repeat, var(--bg-color); /* Texture overlay */
       font-family: var(--font-family);
       display: flex;
       flex-direction: column;
-      align-items: center; /* Center content horizontally */
+      align-items: center;
       padding: 1rem;
       min-height: 100vh;
-      width: 100%; /* Ensure body takes full width */
-      overflow-x: hidden; /* Prevent horizontal scroll */
-      color: #6d4c41; /* Default text color */
+      color: var(--font-color);
     }
 
-    /* Headings Styling */
+    /* Headings */
     h1, h2, h3 {
       margin: 0.5rem 0;
-      color: #6d4c41;
-      text-shadow: 1px 1px #fff3e0;
-      text-align: center; /* Center headings */
+      color: #6d4c41; /* Slightly lighter brown */
+      text-shadow: 1px 1px #fff3e0; /* Subtle highlight */
+      text-align: center;
     }
 
-    /* Responsive Font Sizes for Headings */
-    h1 {
-      font-size: clamp(1.5rem, 5vw, 2rem);
-    }
+    h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); } /* Responsive font size */
+    h2 { font-size: clamp(1.1rem, 4vw, 1.5rem); }
+    h3 { font-size: clamp(0.9rem, 3vw, 1.1rem); }
 
-    h2 {
-      font-size: clamp(1.1rem, 4vw, 1.3rem);
-    }
-
-    h3 {
-      font-size: clamp(0.9rem, 3.5vw, 1rem);
-    }
-
-    /* Game Container Styling */
+    /* Game Container */
     .game-container {
-      /* Calculate width based on tiles and gaps */
-      width: calc(4 * var(--tile-size-base) + 5 * var(--gap-base));
-      /* Ensure it doesn't exceed max width or viewport width */
-      max-width: min(var(--max-board-width), 95vw);
+      width: clamp(280px, 90vw, 400px); /* Responsive width */
       aspect-ratio: 1 / 1; /* Maintain square shape */
       background: var(--board-bg);
-      padding: var(--gap-base);
+      padding: var(--gap);
       display: grid;
-      grid-template-columns: repeat(4, 1fr); /* 4x4 grid */
-      grid-gap: var(--gap-base);
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr); /* Ensure square cells */
+      gap: var(--gap); /* Use gap instead of grid-gap */
       border-radius: 1rem;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-      position: relative; /* For positioning the game over overlay */
+      position: relative; /* For positioning overlay */
       margin-top: 1rem;
-      margin-bottom: 1rem;
     }
 
-    /* Tile Styling */
+    /* Individual Tiles */
     .tile {
-      width: 100%; /* Fill grid cell */
-      aspect-ratio: 1 / 1; /* Maintain square shape */
+      width: 100%;
+      height: 100%; /* Ensure tiles fill the grid cells */
       border-radius: 0.75rem;
       display: flex;
       justify-content: center;
       align-items: center;
-      /* Responsive font size for tiles */
-      font-size: clamp(0.7rem, 2.5vw, 1.1rem); /* Adjusted for potentially long names */
+      font-size: clamp(0.8rem, 3vw, 1.2rem); /* Responsive font size */
       font-weight: bold;
-      color: var(--font-color); /* Use CSS variable here */
-      transition: transform 0.2s, background 0.2s;
-      box-shadow: inset 0 0 8px #ffffff70;
-      overflow: hidden; /* Prevent text overflow */
+      color: var(--font-color);
+      background-color: #cdc1b430; /* Default empty tile background */
+      transition: transform 0.15s ease-in-out, background-color 0.15s ease-in-out;
+      box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.5); /* Inner shadow */
+      overflow: hidden; /* Hide overflowing text */
       text-align: center;
-      padding: 0.2rem; /* Add slight padding */
-      /* Default background for empty tiles or if color not found */
-      background-color: rgba(238, 228, 218, 0.35); /* Empty tile color like 2048 */
+      line-height: 1.1; /* Improve text centering */
+      word-break: break-word; /* Break long words if necessary */
     }
 
     /* Animation for new tiles */
     .tile.new {
-      animation: pop 0.2s ease;
+      animation: pop 0.2s ease-out;
     }
 
-    /* Game Over Overlay Styling */
+    /* Game Over Overlay */
     #game-over {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(255, 248, 225, 0.95); /* Semi-transparent background */
-      display: none; /* Initially hidden */
+      background: rgba(255, 248, 225, 0.9); /* Semi-transparent overlay */
+      display: flex; /* Use flex for centering */
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      font-size: clamp(1.2rem, 4vw, 1.5rem); /* Responsive font size */
+      font-size: clamp(1.2rem, 5vw, 1.8rem);
       color: #6d4c41;
-      border-radius: 1rem; /* Match container radius */
-      z-index: 10; /* Ensure it's above the tiles */
+      border-radius: 1rem; /* Match container */
+      z-index: 10; /* Above tiles */
       text-align: center;
       padding: 1rem;
+      display: none; /* Hidden by default */
     }
 
-    /* Restart Button Styling */
-    #restart-btn {
-      margin-top: 1rem;
-      padding: 0.75rem 1.5rem; /* Slightly larger padding */
-      font-size: clamp(0.9rem, 3vw, 1rem); /* Responsive font size */
+    /* Buttons (Restart, How-to-Play) */
+    .info-button, #restart-btn {
+      margin-top: 0.8rem;
+      padding: 0.6rem 1.2rem;
+      font-size: clamp(0.9rem, 3vw, 1.1rem);
       border: none;
       border-radius: 0.5rem;
-      background: #ffcc80; /* Mithai color */
+      background: #ffcc80; /* Light orange */
       color: #4e342e;
       cursor: pointer;
-      font-weight: bold;
-      transition: background-color 0.2s ease;
-    }
-    #restart-btn:hover {
-        background-color: #ffb74d; /* Darker shade on hover */
+      transition: background-color 0.2s, transform 0.1s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
 
+    .info-button:hover, #restart-btn:hover {
+      background: #ffb74d; /* Darker orange on hover */
+    }
+     .info-button:active, #restart-btn:active {
+      transform: scale(0.98); /* Slight press effect */
+    }
 
-    /* Styling for Info Sections */
-    #challenge, #challenge-progress, #sweet-fact, #score-board, #move-counter, #score-display {
+    /* How-to-Play Modal Styles */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 20; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+      /* Use flexbox to center the modal content */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem; /* Padding for smaller screens */
+    }
+
+    .modal-content {
+      background-color: #fff8e1; /* Light cream background */
+      margin: auto; /* Center horizontally */
+      padding: 25px;
+      border: 1px solid #888;
+      width: 90%; /* Responsive width */
+      max-width: 550px; /* Max width */
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      color: #6d4c41; /* Dark brown text */
+      position: relative; /* For positioning close button */
+      animation: slideIn 0.3s ease-out; /* Simple slide-in animation */
+    }
+
+    .modal-content h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      text-align: center;
+      color: #8d6e63; /* Slightly lighter brown for header */
+    }
+
+     .modal-content ul {
+      list-style: none; /* Remove default bullets */
+      padding: 0;
+      margin-top: 15px;
+      margin-bottom: 15px; /* Add margin below list */
+    }
+
+     .modal-content li {
+      margin-bottom: 12px;
+      line-height: 1.5; /* Improve readability */
+    }
+     .modal-content li strong {
+        color: #795548; /* Slightly darker for emphasis */
+     }
+
+     /* Style for the merge sequence section */
+     .modal-content h3 {
+        font-size: 1.1em;
+        color: #8d6e63;
+        margin-top: 15px;
+        margin-bottom: 10px;
         text-align: center;
-        margin: 0.4rem auto; /* Consistent vertical margin */
-        max-width: 95%;   /* Prevent text from touching edges */
-        width: var(--max-board-width); /* Align width with board on larger screens */
-        padding: 0 0.5rem; /* Add horizontal padding */
+     }
+     .modal-content .merge-list {
+        font-size: 0.95em;
+        text-align: center; /* Center the merge list items */
+        padding: 0;
+        list-style: none;
+     }
+      .modal-content .merge-list li {
+         margin-bottom: 5px;
+      }
+
+
+    .close-button {
+      color: #aaa;
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 32px; /* Larger close button */
+      font-weight: bold;
+      cursor: pointer;
+      line-height: 1; /* Ensure proper vertical alignment */
     }
 
-    /* Leaderboard List Styling */
-    #score-board ol {
-        margin: 0.3rem auto;
-        padding-left: 1.2rem; /* Keep padding for list numbers */
-        display: inline-block; /* Allows centering of the list block */
-        text-align: left; /* Align list items text to the left */
+    .close-button:hover,
+    .close-button:focus {
+      color: #6d4c41; /* Darker on hover */
+      text-decoration: none;
     }
 
-    #leaderboard-list li {
-      font-size: clamp(0.8rem, 2.5vw, 0.9rem); /* Responsive font size */
-      margin-bottom: 0.2rem; /* Space between list items */
+    /* Scoreboard and other info */
+    #score-board, #sweet-fact, #move-counter, #challenge, #challenge-progress {
+        margin-top: 0.5rem;
+        text-align: center;
+        width: 90%;
+        max-width: 400px;
     }
 
-    /* Keyframe animation for tile pop */
+     #score-board ol {
+      margin: 0.3rem auto;
+      padding-left: 1.2rem; /* Indent list items */
+      text-align: left; /* Align list items left */
+      display: inline-block; /* Center the list block */
+    }
+     #score-board li {
+        margin-bottom: 0.2rem;
+     }
+
+    /* Keyframe Animations */
     @keyframes pop {
-      0% { transform: scale(0.5); opacity: 0.5; }
+      0% { transform: scale(0.7); opacity: 0.5; }
+      70% { transform: scale(1.05); opacity: 1; }
       100% { transform: scale(1); opacity: 1; }
     }
 
-    /* Media Query for very small screens */
-    @media (max-width: 360px) {
-      :root {
-        --tile-size-base: 17vw; /* Slightly smaller tiles */
-        --gap-base: 1.5vw;     /* Slightly smaller gap */
-      }
-       h1 { font-size: 1.4rem; }
-       h2 { font-size: 1.0rem; }
-       .tile { font-size: 0.65rem; border-radius: 0.5rem; } /* Further reduce font size */
-       body { padding: 0.5rem; }
-       #restart-btn { padding: 0.6rem 1.2rem; }
+    @keyframes slideIn {
+        from { transform: translateY(-30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
     }
+
   </style>
 </head>
 <body>
@@ -199,7 +264,7 @@
     <div id="game-over">
       <p>😢 Out of sweets!</p>
       <p>Come back tomorrow for more mithai magic!</p>
-      <button id="restart-btn">Restart</button>
+      <button id="restart-btn">Restart Game</button>
     </div>
   </div>
 
@@ -207,136 +272,199 @@
 
   <div id="score-board">
     💯 Leaderboard - Top Mithai Masters:
-    <ol id="leaderboard-list">
-      </ol>
+    <ol id="leaderboard-list"></ol>
   </div>
 
   <div id="move-counter">🎮 Moves: 0</div>
 
+  <button id="how-to-play-btn" class="info-button">📖 How to Play</button>
+
+  <div id="how-to-play-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="close-modal-btn">&times;</span>
+      <h2>How to Play Mithai Merge Mania</h2>
+      <ul>
+        <li><strong>Goal:</strong> Merge identical mithai tiles to create higher-value sweets! Try to reach the ultimate <strong>Thali (2048)</strong> tile and complete the Daily Challenge.</li>
+        <li><strong>Moves:</strong> Use the <strong>Arrow Keys</strong> on your keyboard (or <strong>Swipe</strong> on touch screens) to slide all tiles Up, Down, Left, or Right.</li>
+        <li><strong>Merging:</strong> When two tiles with the same mithai collide during a move, they merge into one tile showing the next mithai in the sequence (and double the points!).</li>
+        <li><strong>New Tiles:</strong> After each successful move, a new tile (usually Boondi or Motichoor) will randomly appear in an empty spot.</li>
+        <li><strong>Game Over:</strong> The game ends when the board is completely full and no more merges are possible in any direction.</li>
+        <li><strong>Scoring:</strong> Your score increases every time you merge tiles. The value of the new merged tile is added to your score.</li>
+        <li><strong>Daily Challenge:</strong> Try to merge a specific number of a target mithai each day for an extra challenge!</li>
+      </ul>
+
+      <h3>Mithai Merge Sequence:</h3>
+      <ul class="merge-list">
+          <li>2 Boondi + 2 Boondi = <strong>4 Motichoor</strong></li>
+          <li>4 Motichoor + 4 Motichoor = <strong>8 Barfi</strong></li>
+          <li>8 Barfi + 8 Barfi = <strong>16 Kaju Katli</strong></li>
+          <li>16 Kaju Katli + 16 Kaju Katli = <strong>32 Rasgulla</strong></li>
+          <li>32 Rasgulla + 32 Rasgulla = <strong>64 Gulab Jamun</strong></li>
+          <li>64 Gulab Jamun + 64 Gulab Jamun = <strong>128 Rasmalai</strong></li>
+          <li>128 Rasmalai + 128 Rasmalai = <strong>256 Jalebi</strong></li>
+          <li>256 Jalebi + 256 Jalebi = <strong>512 Ghewar</strong></li>
+          <li>512 Ghewar + 512 Ghewar = <strong>1024 Gulkand</strong></li>
+          <li>1024 Gulkand + 1024 Gulkand = <strong>✨ 2048 Thali (The Ultimate Goal!) ✨</strong></li>
+      </ul>
+      </div>
+  </div>
+
+  <audio id="move-sound" src="move.mp3" preload="auto"></audio>
+  <audio id="merge-sound" src="merge.mp3" preload="auto"></audio>
+
   <script>
-    // --- Mithai Data ---
+    // --- Game Configuration ---
     const mithaiNames = {
       2: 'Boondi', 4: 'Motichoor', 8: 'Barfi', 16: 'Kaju Katli',
       32: 'Rasgulla', 64: 'Gulab Jamun', 128: 'Rasmalai',
       256: 'Jalebi', 512: 'Ghewar', 1024: 'Gulkand', 2048: 'Thali'
     };
 
-    const mithaiColors = {
-       2: '#fbeec1',  4: '#f3d250',  8: '#f0b64c',  16: '#ec9f4a', // Warmer tones
-      32: '#e27d60', 64: '#c38d9e', 128: '#85cdca', 256: '#41b3a3', // Cooler tones
-     512: '#e8a87c',1024: '#c38d9e', 2048: '#8ee4af' // Higher values
+    const mithaiColors = { // Color scheme for tiles
+      2: '#fbeec1', 4: '#f3d250', 8: '#f0b64c', 16: '#ec9f4a',
+      32: '#e27d60', 64: '#c38d9e', 128: '#85cdca', 256: '#41b3a3',
+      512: '#e8a87c', 1024: '#c38d9e', 2048: '#8ee4af',
+      // Add more colors if you plan to go beyond 2048
     };
 
-    const sweetFacts = [
-      "Boondi is made from chickpea flour and is a crucial ingredient in making both sweet and savory ladoos.",
-      "Motichoor laddoos are famous for their tiny, delicate boondi pearls, often prepared during special occasions.",
-      "Barfi is a soft, milk-based sweet that comes in various flavors like chocolate, pistachio, and mango.",
-      "Kaju Katli, one of India's most popular sweets, is made by blending cashew nuts with sugar syrup.",
-      "Rasgulla, originally from Bengal/Odisha, is made from chhena (cottage cheese) soaked in light sugar syrup.",
-      "Gulab Jamun is made from milk solids, deep-fried, and soaked in a fragrant sugar syrup.",
-      "Rasmalai is a creamy dessert made from soft chhena discs soaked in thickened milk, flavored with cardamom.",
-      "Jalebi is made by deep-frying a fermented batter in circular shapes, then soaking it in sugar syrup.",
-      "Ghewar is a delicate, honeycomb-like dessert from Rajasthan, often served during Teej or Raksha Bandhan.",
-      "Gulkand, a sweet preserve of rose petals and sugar, is believed to have cooling properties.",
-      "A Thali often ends with a variety of sweets, making it a perfect finale to a festive feast.",
-      // Add more facts if desired...
+    const sweetFacts = [ // Fun facts displayed on merge
+        "Boondi is made from chickpea flour and is a crucial ingredient in making both sweet and savory ladoos.",
+        "Motichoor laddoos are famous for their tiny, delicate boondi pearls, often prepared during special occasions like weddings and festivals.",
+        "Barfi is a soft, milk-based sweet that comes in various flavors like chocolate, pistachio, and mango.",
+        "Kaju Katli, one of India's most popular sweets, is made by blending cashew nuts with sugar syrup and cardamom, creating a smooth, melt-in-your-mouth texture.",
+        "Rasgulla, originally from Bengal, is made from chhena (cottage cheese) and soaked in a light, sugary syrup, creating a spongy, soft dessert.",
+        "Gulab Jamun is made from milk solids and flour, deep-fried, and then soaked in a fragrant sugar syrup flavored with rose water or cardamom.",
+        "Rasmalai is a creamy dessert made from soft white cream and chhena, flavored with cardamom and saffron, often served chilled.",
+        "Jalebi, a crispy, syrupy treat, is made by deep-frying a batter in circular shapes and then soaking it in sugar syrup, making it crispy on the outside and soft on the inside.",
+        "Ghewar is a delicate, honeycomb-like dessert from Rajasthan, often served during Teej or Raksha Bandhan festivals. It is soaked in sugar syrup and topped with dry fruits.",
+        "Gulkand, a sweet preserve of rose petals and sugar, is not only delicious but is believed to have cooling properties and health benefits, often used in desserts like kulfi and lassi.",
+        "Thali is not just a meal but an experience that often ends with a variety of sweets like rasgulla, jalebi, or gulab jamun, making it a perfect finale to a festive feast.",
+        "Boondi is also used to make raita and can be added to savory dishes like biryani for a delightful contrast.",
+        "The tiny balls of Motichoor laddoo are known for their beautiful golden color and delicate texture, making them a symbol of celebration in North India.",
+        "Barfi's origins are traced back to the Mughal era, and it is often served in a diamond or square shape for easy serving and sharing.",
+        "Kaju Katli is often garnished with edible silver leaf (varak), adding a luxurious touch to the already rich sweet.",
+        "Rasgulla was originally created in Odisha before becoming a well-loved dessert in Bengal, where it is often referred to as ‘Rasgulla’ or ‘Rasogolla’.",
+        "Gulab Jamun, when freshly made, is so soft that it melts in your mouth within seconds, and its syrup is often infused with aromatic spices like cardamom and saffron.",
+        "Rasmalai's origins can be traced back to Bengal, and it is often served during festivals like Holi and Diwali as a special treat.",
+        "Jalebi is commonly enjoyed as a street food, with vendors preparing it fresh and hot, making it a popular indulgence during festivals and holidays.",
+        "Ghewar has a long history in Rajasthan, and its intricate design requires expert craftsmanship to create the delicate honeycomb texture.",
+        "Gulkand is made by preserving rose petals in sugar, which intensifies their flavor and fragrance, making it a beloved ingredient in many traditional Indian desserts.",
+        "Thali sweets offer a wide range of textures and flavors, from creamy rasgulla to crispy jalebi, ensuring that there’s something for every sweet tooth."
+        // Add more facts if desired
     ];
 
-    // --- DOM Elements ---
+    // --- DOM Element References ---
+    const board = document.getElementById("game-board");
     const scoreDisplay = document.getElementById("score-display");
     const challengeBox = document.getElementById("challenge");
+    const challengeProgress = document.getElementById("challenge-progress");
     const factBox = document.getElementById("sweet-fact");
     const moveCounter = document.getElementById("move-counter");
     const gameOverBox = document.getElementById("game-over");
     const restartBtn = document.getElementById("restart-btn");
     const leaderboardList = document.getElementById("leaderboard-list");
-    const board = document.getElementById("game-board");
-    const challengeProgress = document.getElementById("challenge-progress");
+    const moveSound = document.getElementById("move-sound");
+    const mergeSound = document.getElementById("merge-sound");
+    const howToPlayBtn = document.getElementById("how-to-play-btn");
+    const howToPlayModal = document.getElementById("how-to-play-modal");
+    const closeModalBtn = document.getElementById("close-modal-btn");
 
     // --- Game State Variables ---
-    let grid;
-    let moveCount;
-    let score;
-    let mergeCounts; // Tracks merges for the challenge
-    let targetReached; // Flag for challenge completion
-    let targetValue; // Value needed for the challenge
-    let targetName; // Name of the sweet for the challenge
-    let targetAmount; // How many merges needed for the challenge
-    let hasWon; // Flag for reaching 2048
-    let startX, startY; // For touch controls
+    let grid = []; // The 4x4 game grid
+    let score = 0;
+    let moveCount = 0;
+    let mergeCounts = {}; // Tracks merges for the daily challenge
+    let targetValue = 0; // Daily challenge target mithai value
+    let targetAmount = 0; // Daily challenge target quantity
+    let targetName = ''; // Daily challenge target mithai name
+    let targetReached = false; // Flag for challenge completion
+    let isMoving = false; // Prevent input during animation/move processing
+    let touchStartX = 0; // For touch controls
+    let touchStartY = 0; // For touch controls
+    let hasWon = false; // Flag if 2048 tile is achieved
 
-    // --- Daily Challenge Setup ---
-    function setupDailyChallenge() {
-        const challengeOptions = Object.entries(mithaiNames).filter(([val]) => val >= 8 && val <= 512); // Exclude very low/high
-        const today = new Date().toDateString(); // Use date for consistent daily challenge
-        // Simple hash function based on date string to get a consistent index for the day
-        const dailyIndex = [...today].reduce((acc, char) => acc + char.charCodeAt(0), 0) % challengeOptions.length;
-        [targetValue, targetName] = challengeOptions[dailyIndex];
-        targetValue = parseInt(targetValue); // Ensure it's a number
-        // Target amount between 2 and 4 based on the index
-        targetAmount = (dailyIndex % 3) + 2;
-        challengeBox.textContent = `🎯 Daily Challenge: Merge ${targetAmount} ${targetName}s Today!`;
-        updateChallengeProgressDisplay(); // Initialize display
-    }
+    // --- Core Game Logic Functions ---
 
-    // --- Game Logic Functions ---
-
-    // Initialize or Reset Game
-    function initGame() {
-      grid = Array(4).fill(null).map(() => Array(4).fill(0)); // 4x4 grid filled with 0
-      moveCount = 0;
+    /**
+     * Initializes or restarts the game.
+     * Resets grid, score, moves, challenge progress, and spawns initial tiles.
+     */
+    function restartGame() {
+      grid = Array(4).fill(null).map(() => Array(4).fill(0)); // Create empty 4x4 grid
       score = 0;
-      mergeCounts = {}; // Reset merge counts for challenge
+      moveCount = 0;
+      mergeCounts = {};
       targetReached = false;
-      hasWon = false;
+      hasWon = false; // Reset win flag
+      isMoving = false;
+
+      // Reset UI elements
       gameOverBox.style.display = 'none'; // Hide game over screen
+      updateScore();
+      updateMoveCounter();
+      setupDailyChallenge(); // Set up the challenge for the day
+      updateChallengeProgressDisplay(); // Reset challenge progress display
 
-      setupDailyChallenge(); // Set up the daily challenge
-      updateScoreDisplay();
-      updateMoveCounterDisplay();
-      updateLeaderboardDisplay(); // Load leaderboard from storage
-
-      // Spawn initial tiles
-      spawnTile();
-      spawnTile();
-      drawBoard(); // Initial draw
-      triggerSweetFact(); // Show initial fact
+      // Spawn initial tiles and draw the board
+      spawnTile(true); // Spawn first tile without animation
+      spawnTile(true); // Spawn second tile without animation
+      drawBoard();
+      triggerSweetFact(); // Show an initial fact
     }
 
-    // Update Score Display
-    function updateScoreDisplay() {
-      scoreDisplay.textContent = `🏆 Score: ${score}`;
+    /**
+     * Sets up the daily challenge based on the current date.
+     */
+    function setupDailyChallenge() {
+        const challengeOptions = Object.entries(mithaiNames).filter(([val]) => val >= 8 && val <= 512); // Use mid-range mithai for challenges
+        if (challengeOptions.length === 0) {
+            challengeBox.textContent = "🎯 No challenge available today.";
+            return;
+        }
+        const today = new Date().toDateString(); // Use date for consistent daily challenge
+        // Simple pseudo-random index based on date string characters
+        const dateSeed = [...today].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const challengeIndex = dateSeed % challengeOptions.length;
+        const amountIndex = (dateSeed + 5) % 3; // Get a number between 0 and 2
+
+        [targetValue, targetName] = challengeOptions[challengeIndex];
+        targetValue = parseInt(targetValue, 10); // Ensure it's a number
+        targetAmount = amountIndex + 2; // Target amount between 2 and 4
+
+        challengeBox.textContent = `🎯 Daily Challenge: Merge ${targetAmount} ${targetName}s Today!`;
+        updateChallengeProgressDisplay(); // Update display with new target
     }
 
-    // Update Challenge Progress Display
-    function updateChallengeProgressDisplay() {
+
+    /**
+     * Updates the display for the daily challenge progress.
+     */
+     function updateChallengeProgressDisplay() {
         const currentCount = mergeCounts[targetValue] || 0;
         challengeProgress.textContent = `Progress: ${currentCount} / ${targetAmount}`;
     }
 
-    // Update Challenge Progress Logic
-    function updateChallengeProgress(mergedValue) {
-      // Increment count for the specific merged value
-      mergeCounts[mergedValue] = (mergeCounts[mergedValue] || 0) + 1;
 
-      // Check if this merge contributes to the daily challenge
-      if (mergedValue == targetValue) {
-        updateChallengeProgressDisplay(); // Update the text display
-        // Check for challenge completion
-        if (!targetReached && (mergeCounts[mergedValue] >= targetAmount)) {
-          targetReached = true;
-          // Use a timeout to show the alert after the board updates
-          setTimeout(() => {
-              // Use a custom message box instead of alert
-              showCustomAlert(`🎯 Challenge Complete! You merged ${targetAmount} ${targetName}s! You're a Mithai Champion!`);
-          }, 300); // Delay slightly
-        }
-      }
+    /**
+     * Updates the score display on the page.
+     */
+    function updateScore() {
+      scoreDisplay.textContent = `🏆 Score: ${score}`;
     }
 
-    // Spawn a new tile (2 or 4) in a random empty cell
-    function spawnTile() {
-      let emptyCells = [];
+    /**
+     * Updates the move counter display on the page.
+     */
+    function updateMoveCounter() {
+      moveCounter.textContent = `🎮 Moves: ${moveCount}`;
+    }
+
+    /**
+     * Spawns a new tile (usually 2, sometimes 4) in a random empty cell.
+     * @param {boolean} noAnimation - If true, skips the 'new' class animation.
+     */
+    function spawnTile(noAnimation = false) {
+      const emptyCells = [];
       grid.forEach((row, r) => {
         row.forEach((val, c) => {
           if (val === 0) {
@@ -345,324 +473,362 @@
         });
       });
 
-      if (emptyCells.length === 0) return; // No space left
+      if (emptyCells.length > 0) {
+        const { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        grid[r][c] = Math.random() < 0.9 ? 2 : 4; // 90% chance of 2, 10% chance of 4
 
-      // Select a random empty cell
-      const { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-      // Assign 2 (90% chance) or 4 (10% chance)
-      grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+        // Add 'new' class to the specific tile for animation, unless skipped
+        // Ensure board children exist before trying to access them
+        if (!noAnimation && board.children.length > (r * 4 + c)) {
+            const tileElement = board.children[r * 4 + c]; // Get the corresponding DOM element
+            if (tileElement && tileElement.classList.contains('tile')) { // Check if it's actually a tile
+                 tileElement.classList.add('new');
+                 // Remove class after animation duration
+                 setTimeout(() => tileElement.classList.remove('new'), 200);
+            }
+        }
+      }
+       // No need to call drawBoard here, it's called after a move completes
     }
 
-    // Draw the current state of the board
+    /**
+     * Renders the current state of the grid onto the HTML board.
+     */
     function drawBoard() {
-      // Clear previous tiles
-      board.innerHTML = ''; // Clear all children efficiently
-      // Re-add the game over overlay (it gets cleared by innerHTML)
-      board.appendChild(gameOverBox);
+      // Clear previous tiles before drawing new ones
+      // Ensure game-over div is preserved if present
+      while (board.firstChild && board.firstChild.id !== 'game-over') {
+          board.removeChild(board.firstChild);
+      }
 
-      grid.forEach((row) => {
-        row.forEach((val) => {
+      grid.forEach((row, r) => {
+        row.forEach((val, c) => {
           const tile = document.createElement('div');
           tile.classList.add('tile');
           if (val !== 0) {
-            tile.textContent = mithaiNames[val] || val; // Show name or number
-            tile.style.backgroundColor = mithaiColors[val] || '#3c3a32'; // Use specific color or a fallback
-             // Adjust text color for better contrast on darker backgrounds if needed
-            if (val > 4) { // Example: darker tiles might need lighter text
-                 const bgColor = mithaiColors[val];
-                 // Basic check for darkness (can be improved)
-                 if (bgColor && ['#e27d60', '#c38d9e', '#41b3a3', '#4e342e'].includes(bgColor.toLowerCase())) {
-                    tile.style.color = '#f9f6f2'; // Lighter text color
-                 } else {
-                    // FIX: Use the actual color value string, not CSS var() syntax
-                    tile.style.color = '#4e342e'; // Default dark text
-                 }
+            tile.textContent = mithaiNames[val] || val; // Display name or number
+            tile.style.backgroundColor = mithaiColors[val] || '#3c3a32'; // Use specific color or fallback
+            // Adjust text color for better contrast on darker backgrounds if needed
+            if (val >= 128) { // Example threshold
+                 tile.style.color = '#f9f6f2'; // Lighter text color
             } else {
-                 // FIX: Use the actual color value string, not CSS var() syntax
-                 tile.style.color = '#4e342e'; // Default dark text
+                 // *** FIX: Use the actual color value string ***
+                 tile.style.color = '#4e342e'; // Default dark text (value of --font-color)
             }
           } else {
-            // Style for empty tile
-            tile.style.backgroundColor = 'rgba(238, 228, 218, 0.35)';
+             // Style for empty cells (already has default background via CSS)
           }
-          board.appendChild(tile);
+           // Insert the tile before the game-over div if it exists, otherwise just append
+           const gameOverDiv = document.getElementById('game-over');
+           if (gameOverDiv) {
+                board.insertBefore(tile, gameOverDiv);
+           } else {
+                board.appendChild(tile);
+           }
         });
       });
     }
 
-    // Slide and merge logic for a single row/column
-    function slideAndMerge(row) {
-      // 1. Filter out zeros
-      let arr = row.filter(val => val !== 0);
-      let merged = false; // Flag to track if merge happened in this slide
+    /**
+     * Handles the logic for moving and merging tiles in a single row/column.
+     * @param {number[]} line - An array representing a row or column.
+     * @returns {{newLine: number[], merged: boolean, pointsAdded: number}} - The modified line, whether a merge occurred, and points gained.
+     */
+    function slideAndMerge(line) {
+        let arr = line.filter(val => val); // Filter out zeros
+        let pointsAdded = 0;
+        let merged = false;
 
-      // 2. Merge adjacent equal tiles
-      for (let i = 0; i < arr.length - 1; i++) {
-        if (arr[i] === arr[i + 1]) {
-          arr[i] *= 2; // Double the value
-          score += arr[i]; // Add to score
-          updateChallengeProgress(arr[i]); // Update challenge progress
-          arr.splice(i + 1, 1); // Remove the merged tile
-          merged = true;
+        // Perform merges
+        for (let i = 0; i < arr.length - 1; i++) {
+            // Check if merge is possible (arr[i] must exist and be equal to arr[i+1])
+            if (arr[i] && arr[i] === arr[i + 1]) {
+                arr[i] *= 2; // Merge tiles
+                pointsAdded += arr[i]; // Add score
+                arr.splice(i + 1, 1); // Remove the merged tile
+                merged = true;
 
-          // Check for win condition (reaching 2048)
-          if (!hasWon && arr[i] === 2048) {
-             hasWon = true;
-             // Use timeout to show alert after board redraw
-             setTimeout(() => {
-                 // Use a custom message box instead of alert
-                 showCustomAlert("🎉 You've unlocked the Thali! You're a Mithai Master!");
-             }, 200);
-          }
+                // Update challenge progress immediately on merge
+                mergeCounts[arr[i]] = (mergeCounts[arr[i]] || 0) + 1;
+                updateChallengeProgressDisplay();
+
+                // Check for challenge completion
+                if (arr[i] === targetValue && mergeCounts[arr[i]] >= targetAmount && !targetReached) {
+                    targetReached = true;
+                    // Use setTimeout to show alert after potential animations
+                    setTimeout(() => alert(`🎯 Challenge Complete! You're a Mithai Champion!`), 300);
+                }
+
+                 // Check for win condition (reaching 2048)
+                if (arr[i] === 2048 && !hasWon) {
+                    hasWon = true;
+                    setTimeout(() => alert("🎉 You've unlocked the Thali! You're a Mithai Master!"), 200);
+                }
+            }
+        }
+
+        // Pad with zeros to restore line length (4)
+        const newLine = arr.concat(Array(4 - arr.length).fill(0));
+        return { newLine, merged, pointsAdded };
+    }
+
+    /**
+     * Transposes the grid (swaps rows and columns).
+     * Used to apply horizontal logic (slideAndMerge) to vertical moves.
+     * @param {number[][]} matrix - The grid to transpose.
+     * @returns {number[][]} - The transposed grid.
+     */
+    function transpose(matrix) {
+        // Ensure matrix is not empty before transposing
+        if (!matrix || matrix.length === 0 || !matrix[0]) {
+            return [];
+        }
+        return matrix[0].map((_, i) => matrix.map(row => row[i]));
+    }
+
+    /**
+     * Processes a move in a given direction (up, down, left, right).
+     * @param {string} direction - The direction of the move.
+     */
+    function move(direction) {
+        if (isMoving) return; // Prevent input spam during processing
+        isMoving = true;
+
+        let originalGrid = JSON.stringify(grid); // Store state before move
+        let tempGrid = grid.map(row => [...row]); // Create a copy to modify
+        let moved = false; // Flag to track if any tile changed position/value
+        let totalPointsAdded = 0;
+        let anyMergeOccurred = false;
+
+        // Rotate grid for up/down moves to reuse left/right logic
+        if (direction === 'up' || direction === 'down') {
+            tempGrid = transpose(tempGrid);
+        }
+        // Reverse rows for right/down moves
+        if (direction === 'right' || direction === 'down') {
+            tempGrid = tempGrid.map(row => row.reverse());
+        }
+
+        // Slide and merge each line (row)
+        for (let i = 0; i < 4; i++) {
+            // Ensure tempGrid[i] exists before processing
+            if (tempGrid[i]) {
+                const { newLine, merged, pointsAdded } = slideAndMerge(tempGrid[i]);
+                tempGrid[i] = newLine;
+                if (merged) anyMergeOccurred = true;
+                totalPointsAdded += pointsAdded;
+            }
+        }
+
+        // Reverse back if needed
+        if (direction === 'right' || direction === 'down') {
+            tempGrid = tempGrid.map(row => row.reverse());
+        }
+        // Rotate back if needed
+        if (direction === 'up' || direction === 'down') {
+            tempGrid = transpose(tempGrid);
+        }
+
+        // Check if the grid actually changed
+        if (JSON.stringify(tempGrid) !== originalGrid) {
+            moved = true;
+            grid = tempGrid; // Update the main grid
+            score += totalPointsAdded; // Update score
+            moveCount++; // Increment move count
+
+            // Update UI
+            updateScore();
+            updateMoveCounter();
+
+            // Play sounds (handle potential errors)
+            if (anyMergeOccurred) {
+                mergeSound.play().catch(e => console.warn("Merge sound play failed:", e));
+                triggerSweetFact(); // Show fact on merge
+            } else {
+                 moveSound.play().catch(e => console.warn("Move sound play failed:", e));
+            }
+
+            // Add a slight delay before spawning and drawing for smoother feel
+            setTimeout(() => {
+                spawnTile(); // Spawn a new tile
+                drawBoard(); // Redraw the board with new state
+
+                // Check for game over state AFTER spawning and drawing
+                 if (isGameOver()) {
+                    showGameOver();
+                 }
+                 isMoving = false; // Allow input again
+            }, 100); // 100ms delay
+
+        } else {
+            isMoving = false; // No move happened, allow input again
+        }
+    }
+
+
+    /**
+     * Checks if the game is over (no empty cells and no possible merges).
+     * @returns {boolean} - True if the game is over, false otherwise.
+     */
+    function isGameOver() {
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          // Check if grid[r] or grid[r][c] exists before accessing
+          if (!grid[r] || grid[r][c] === undefined) continue; // Skip if row/cell doesn't exist
+
+          if (grid[r][c] === 0) return false; // Found an empty cell
+          // Check horizontal merge possible
+          if (c < 3 && grid[r][c] === grid[r][c + 1]) return false;
+          // Check vertical merge possible
+          if (r < 3 && grid[r + 1] && grid[r][c] === grid[r + 1][c]) return false; // Ensure next row exists
         }
       }
-
-      // 3. Create the new row with zeros padded at the end
-      let newRow = Array(4).fill(0);
-      arr.forEach((val, index) => {
-        newRow[index] = val;
-      });
-
-      return newRow;
+      // If no empty cells and no possible merges, game is over
+      return true;
     }
 
-    // Rotate the grid 90 degrees clockwise
-    function rotateGrid(currentGrid) {
-        const newGrid = Array(4).fill(null).map(() => Array(4).fill(0));
-        for (let r = 0; r < 4; r++) {
-            for (let c = 0; c < 4; c++) {
-                newGrid[c][3 - r] = currentGrid[r][c];
-            }
-        }
-        return newGrid;
+    /**
+     * Displays the game over screen and updates the leaderboard.
+     */
+    function showGameOver() {
+      updateLeaderboard(); // Update leaderboard when game ends
+      gameOverBox.style.display = 'flex'; // Show the overlay
     }
 
-
-    // Handle player move (left, right, up, down)
-    function move(direction) {
-        let originalGrid = JSON.stringify(grid); // Store initial state to check if changes occur
-        let tempGrid = grid.map(row => [...row]); // Create a copy to work with
-
-        // Rotate grid for up/down moves so we only need left-slide logic
-        if (direction === 'up') {
-            tempGrid = rotateGrid(rotateGrid(rotateGrid(tempGrid))); // Rotate 270 degrees
-        } else if (direction === 'right') {
-            tempGrid = rotateGrid(rotateGrid(tempGrid)); // Rotate 180 degrees
-        } else if (direction === 'down') {
-            tempGrid = rotateGrid(tempGrid); // Rotate 90 degrees
-        }
-
-        // Slide and merge each row (which corresponds to the correct direction due to rotation)
-        let moved = false;
-        for (let r = 0; r < 4; r++) {
-            const originalRow = JSON.stringify(tempGrid[r]);
-            tempGrid[r] = slideAndMerge(tempGrid[r]);
-            if (JSON.stringify(tempGrid[r]) !== originalRow) {
-                moved = true; // A change occurred in this row
-            }
-        }
-
-        // Rotate grid back to original orientation
-        if (direction === 'up') {
-            tempGrid = rotateGrid(tempGrid); // Rotate back 90
-        } else if (direction === 'right') {
-            tempGrid = rotateGrid(rotateGrid(tempGrid)); // Rotate back 180
-        } else if (direction === 'down') {
-            tempGrid = rotateGrid(rotateGrid(rotateGrid(tempGrid))); // Rotate back 270
-        }
-
-        // If the grid actually changed after the move
-        if (moved) {
-            grid = tempGrid; // Update the main grid
-            spawnTile(); // Add a new tile
-            drawBoard(); // Redraw the board
-            moveCount++;
-            updateMoveCounterDisplay();
-            updateScoreDisplay();
-            triggerSweetFact(); // Show a new fact on successful move
-
-            // Check for game over condition after the move
-            if (isGameOver()) {
-                showGameOver();
-            }
-        }
-    }
-
-
-    // Update Move Counter Display
-    function updateMoveCounterDisplay() {
-      moveCounter.textContent = `🎮 Moves: ${moveCount}`;
-    }
-
-    // Display a random sweet fact
+    /**
+     * Updates the sweet fact display with a random fact.
+     */
     function triggerSweetFact() {
       const fact = sweetFacts[Math.floor(Math.random() * sweetFacts.length)];
       factBox.textContent = "🍬 " + fact;
     }
 
-    // Check if the game is over (no empty cells and no possible merges)
-    function isGameOver() {
-      for (let r = 0; r < 4; r++) {
-        for (let c = 0; c < 4; c++) {
-          // Check for empty cell
-          if (grid[r][c] === 0) return false;
-          // Check for horizontal merge possibility
-          if (c < 3 && grid[r][c] === grid[r][c + 1]) return false;
-          // Check for vertical merge possibility
-          if (r < 3 && grid[r][c] === grid[r + 1][c]) return false;
-        }
+    /**
+     * Updates the leaderboard display and saves scores to localStorage.
+     */
+    function updateLeaderboard() {
+      let scores = [];
+      try {
+        // Retrieve scores, ensuring it's an array
+        const storedScores = localStorage.getItem("mithaiScores");
+        scores = storedScores ? JSON.parse(storedScores) : [];
+        if (!Array.isArray(scores)) scores = [];
+      } catch (e) {
+        console.error("Could not parse leaderboard scores from localStorage:", e);
+        scores = []; // Reset if data is corrupted
       }
-      // If no empty cells and no merges possible, game is over
-      return true;
-    }
 
-    // Update and Display Leaderboard
-    function updateLeaderboardDisplay() {
-      const scores = JSON.parse(localStorage.getItem("mithaiScores") || "[]");
-      // Sort scores descending and take top 3
+      // Add current score only if it's greater than 0 and game has actually ended
+      // Check game over status again here to be sure
+      if (score > 0 && isGameOver()) {
+         // Avoid adding score multiple times if updateLeaderboard is called again
+         if (!scores.includes(score) || scores.length === 0) {
+             scores.push(score);
+         }
+      }
+
+      // Sort scores descending and keep top 3
       const sorted = scores.sort((a, b) => b - a).slice(0, 3);
-      // Update the list in the HTML
-      leaderboardList.innerHTML = sorted.map(s => `<li>${s} points</li>`).join("");
-       // If no scores yet, display a message
-        if (sorted.length === 0) {
-            leaderboardList.innerHTML = "<li>No scores yet!</li>";
-        }
-    }
 
-    // Save score to leaderboard (localStorage)
-    function saveScoreToLeaderboard() {
-        const scores = JSON.parse(localStorage.getItem("mithaiScores") || "[]");
-        scores.push(score); // Add current score
-        // Sort descending and keep only top 3 (or more if desired)
-        const sorted = scores.sort((a, b) => b - a).slice(0, 3);
-        localStorage.setItem("mithaiScores", JSON.stringify(sorted));
-        updateLeaderboardDisplay(); // Update the display immediately
-    }
+      // Save updated scores back to localStorage
+      try {
+          localStorage.setItem("mithaiScores", JSON.stringify(sorted));
+      } catch (e) {
+          console.error("Could not save leaderboard scores to localStorage:", e);
+      }
 
 
-    // Show the Game Over screen
-    function showGameOver() {
-      saveScoreToLeaderboard(); // Save score when game ends
-      gameOverBox.style.display = 'flex'; // Make the overlay visible
-    }
-
-    // --- Custom Alert Function ---
-    function showCustomAlert(message) {
-        // Check if an alert box already exists
-        let existingAlert = document.getElementById('custom-alert-box');
-        if (existingAlert) {
-            existingAlert.remove(); // Remove old alert if present
-        }
-
-        // Create the alert box elements
-        const alertBox = document.createElement('div');
-        alertBox.id = 'custom-alert-box';
-        alertBox.style.position = 'fixed';
-        alertBox.style.left = '50%';
-        alertBox.style.top = '20%';
-        alertBox.style.transform = 'translateX(-50%)';
-        alertBox.style.backgroundColor = '#fff3e0'; // Light background
-        alertBox.style.padding = '20px';
-        alertBox.style.border = '2px solid #ffcc80'; // Border color
-        alertBox.style.borderRadius = '10px';
-        alertBox.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
-        alertBox.style.zIndex = '1000'; // Ensure it's on top
-        alertBox.style.textAlign = 'center';
-        alertBox.style.color = '#4e342e'; // Font color
-        alertBox.style.maxWidth = '80%';
-
-        const messageP = document.createElement('p');
-        messageP.textContent = message;
-        messageP.style.marginBottom = '15px';
-        messageP.style.fontSize = 'clamp(1rem, 4vw, 1.2rem)';
-
-        const closeButton = document.createElement('button');
-        closeButton.textContent = 'OK';
-        closeButton.style.padding = '8px 16px';
-        closeButton.style.border = 'none';
-        closeButton.style.borderRadius = '5px';
-        closeButton.style.backgroundColor = '#ffcc80';
-        closeButton.style.color = '#4e342e';
-        closeButton.style.fontWeight = 'bold';
-        closeButton.style.cursor = 'pointer';
-
-        // Add event listener to close the alert box
-        closeButton.onclick = function() {
-            alertBox.remove();
-        };
-
-        // Append elements
-        alertBox.appendChild(messageP);
-        alertBox.appendChild(closeButton);
-        document.body.appendChild(alertBox);
+      // Update the leaderboard display
+      leaderboardList.innerHTML = sorted.length > 0
+        ? sorted.map(s => `<li>${s} points</li>`).join("")
+        : "<li>No scores yet!</li>"; // Show message if empty
     }
 
 
     // --- Event Listeners ---
 
-    // Keyboard Controls
+    // Keyboard Input
     document.addEventListener('keydown', (e) => {
-      // Check if the game over screen is active or custom alert is shown
-       if (gameOverBox.style.display === 'flex' || document.getElementById('custom-alert-box')) return;
-
-      switch (e.key) {
-        case 'ArrowUp':    move('up'); break;
-        case 'ArrowDown':  move('down'); break;
-        case 'ArrowLeft':  move('left'); break;
-        case 'ArrowRight': move('right'); break;
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        e.preventDefault(); // Prevent page scrolling
+        move(e.key.replace('Arrow', '').toLowerCase());
       }
     });
 
-    // Touch Controls
+    // Touch Input
     board.addEventListener('touchstart', (e) => {
-       // Check if the game over screen is active or custom alert is shown
-       if (gameOverBox.style.display === 'flex' || document.getElementById('custom-alert-box')) return;
-       startX = e.touches[0].clientX;
-       startY = e.touches[0].clientY;
-    }, { passive: true }); // Use passive for performance
+      if (isMoving) return; // Ignore touch if already processing
+      // Ensure touches exist before accessing clientX/Y
+      if (e.touches && e.touches.length > 0) {
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true }); // Use passive for better scroll performance
 
     board.addEventListener('touchmove', (e) => {
-        // Prevent scrolling while swiping on the board only if not game over/alert
-        if (gameOverBox.style.display !== 'flex' && !document.getElementById('custom-alert-box')) {
+        // Prevent scrolling while swiping on the board only if a touch has started
+        if (touchStartX !== 0 || touchStartY !== 0) {
              e.preventDefault();
         }
-    }, { passive: false }); // Need false to use preventDefault
+    }, { passive: false });
+
 
     board.addEventListener('touchend', (e) => {
-       // Check if the game over screen is active or custom alert is shown
-       if (gameOverBox.style.display === 'flex' || document.getElementById('custom-alert-box')) return;
-       if (!startX || !startY) return; // Ensure start coordinates exist
+      // Ensure changedTouches exists and touch has started
+      if (isMoving || !e.changedTouches || e.changedTouches.length === 0 || touchStartX === 0 && touchStartY === 0) {
+          return; // Ignore if processing or no touch data/start points
+      }
 
-       const endX = e.changedTouches[0].clientX;
-       const endY = e.changedTouches[0].clientY;
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+      const dx = touchEndX - touchStartX;
+      const dy = touchEndY - touchStartY;
 
-       const dx = endX - startX;
-       const dy = endY - startY;
-       const threshold = 30; // Minimum swipe distance
+      const swipeThreshold = 30; // Minimum distance for a swipe
 
-       // Determine swipe direction based on largest distance moved
-       if (Math.abs(dx) > Math.abs(dy)) {
-         // Horizontal swipe
-         if (Math.abs(dx) > threshold) {
-            move(dx > 0 ? 'right' : 'left');
-         }
-       } else {
-         // Vertical swipe
-          if (Math.abs(dy) > threshold) {
-            move(dy > 0 ? 'down' : 'up');
-          }
-       }
-
-       // Reset start coordinates
-       startX = null;
-       startY = null;
+      // Determine direction based on the dominant axis and threshold
+      if (Math.abs(dx) > Math.abs(dy)) { // Horizontal swipe
+        if (Math.abs(dx) > swipeThreshold) {
+          move(dx > 0 ? 'right' : 'left');
+        }
+      } else { // Vertical swipe
+        if (Math.abs(dy) > swipeThreshold) {
+          move(dy > 0 ? 'down' : 'up');
+        }
+      }
+       // Reset start points after processing the swipe
+       touchStartX = 0;
+       touchStartY = 0;
     });
 
-    // Restart Button
-    restartBtn.addEventListener('click', initGame);
+    // Button Clicks
+    restartBtn.addEventListener('click', restartGame);
+    howToPlayBtn.addEventListener('click', () => {
+      howToPlayModal.style.display = 'flex'; // Show modal using flex
+    });
+    closeModalBtn.addEventListener('click', () => {
+      howToPlayModal.style.display = 'none'; // Hide modal
+    });
 
-    // --- Initial Game Start ---
-    initGame(); // Start the game when the script loads
+    // Close modal on outside click
+    window.addEventListener('click', (event) => {
+      if (event.target === howToPlayModal) { // If click target is the modal background
+        howToPlayModal.style.display = 'none';
+      }
+    });
+
+    // --- Game Initialization ---
+    // Use DOMContentLoaded to ensure the DOM is ready before running script
+    document.addEventListener('DOMContentLoaded', () => {
+        // Ensure all required DOM elements are present before starting
+        if (board && scoreDisplay && challengeBox && challengeProgress && factBox && moveCounter && gameOverBox && restartBtn && leaderboardList && moveSound && mergeSound && howToPlayBtn && howToPlayModal && closeModalBtn) {
+            restartGame(); // Start the game
+            updateLeaderboard(); // Load initial leaderboard
+        } else {
+            console.error("One or more essential DOM elements are missing. Game cannot start.");
+            alert("Error initializing the game. Please reload the page.");
+        }
+    });
 
   </script>
 </body>
