@@ -5,145 +5,216 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mithai Merge Mania</title>
   <style>
+    /* CSS Variables for theming and layout */
     :root {
-      --tile-size: 80px;
-      --gap: 10px;
+      /* Using vw for better scaling, adjust base values as needed */
+      --tile-size-base: 18vw; /* Base size relative to viewport width */
+      --gap-base: 2vw;        /* Base gap relative to viewport width */
+      --max-board-width: 400px; /* Max width for larger screens */
+
+      /* Color and font variables */
       --bg-color: #f5eee6;
       --board-bg: #fff3e0;
-      --tile-bg: #ffe0b2;
-      --font-color: #4e342e;
+      --tile-bg: #ffe0b2; /* Default tile background */
+      --font-color: #4e342e; /* Define the font color value */
       --font-family: 'Segoe UI', sans-serif;
     }
 
+    /* Basic Reset */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
+    /* Body Styling */
     body {
       background: url('https://www.transparenttextures.com/patterns/wood-pattern.png') repeat;
       font-family: var(--font-family);
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: center; /* Center content horizontally */
       padding: 1rem;
       min-height: 100vh;
+      width: 100%; /* Ensure body takes full width */
+      overflow-x: hidden; /* Prevent horizontal scroll */
+      color: #6d4c41; /* Default text color */
     }
 
+    /* Headings Styling */
     h1, h2, h3 {
       margin: 0.5rem 0;
       color: #6d4c41;
       text-shadow: 1px 1px #fff3e0;
+      text-align: center; /* Center headings */
     }
 
+    /* Responsive Font Sizes for Headings */
     h1 {
-      font-size: 2rem;
+      font-size: clamp(1.5rem, 5vw, 2rem);
     }
 
     h2 {
-      font-size: 1.3rem;
+      font-size: clamp(1.1rem, 4vw, 1.3rem);
     }
 
     h3 {
-      font-size: 1rem;
+      font-size: clamp(0.9rem, 3.5vw, 1rem);
     }
 
+    /* Game Container Styling */
     .game-container {
-      max-width: 400px;
-      width: 100%;
-      aspect-ratio: 1 / 1;
+      /* Calculate width based on tiles and gaps */
+      width: calc(4 * var(--tile-size-base) + 5 * var(--gap-base));
+      /* Ensure it doesn't exceed max width or viewport width */
+      max-width: min(var(--max-board-width), 95vw);
+      aspect-ratio: 1 / 1; /* Maintain square shape */
       background: var(--board-bg);
-      padding: var(--gap);
+      padding: var(--gap-base);
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      grid-gap: var(--gap);
+      grid-template-columns: repeat(4, 1fr); /* 4x4 grid */
+      grid-gap: var(--gap-base);
       border-radius: 1rem;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-      position: relative;
+      position: relative; /* For positioning the game over overlay */
+      margin-top: 1rem;
+      margin-bottom: 1rem;
     }
 
+    /* Tile Styling */
     .tile {
-      width: 100%;
-      aspect-ratio: 1 / 1;
+      width: 100%; /* Fill grid cell */
+      aspect-ratio: 1 / 1; /* Maintain square shape */
       border-radius: 0.75rem;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 1.2rem;
+      /* Responsive font size for tiles */
+      font-size: clamp(0.7rem, 2.5vw, 1.1rem); /* Adjusted for potentially long names */
       font-weight: bold;
-      color: var(--font-color);
+      color: var(--font-color); /* Use CSS variable here */
       transition: transform 0.2s, background 0.2s;
       box-shadow: inset 0 0 8px #ffffff70;
+      overflow: hidden; /* Prevent text overflow */
+      text-align: center;
+      padding: 0.2rem; /* Add slight padding */
+      /* Default background for empty tiles or if color not found */
+      background-color: rgba(238, 228, 218, 0.35); /* Empty tile color like 2048 */
     }
 
+    /* Animation for new tiles */
     .tile.new {
       animation: pop 0.2s ease;
     }
 
+    /* Game Over Overlay Styling */
     #game-over {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(255, 248, 225, 0.95);
-      display: flex;
+      background: rgba(255, 248, 225, 0.95); /* Semi-transparent background */
+      display: none; /* Initially hidden */
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      font-size: 1.5rem;
+      font-size: clamp(1.2rem, 4vw, 1.5rem); /* Responsive font size */
       color: #6d4c41;
-      border-radius: 1rem;
-      z-index: 10;
-      display: none;
+      border-radius: 1rem; /* Match container radius */
+      z-index: 10; /* Ensure it's above the tiles */
+      text-align: center;
+      padding: 1rem;
     }
 
+    /* Restart Button Styling */
     #restart-btn {
       margin-top: 1rem;
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
+      padding: 0.75rem 1.5rem; /* Slightly larger padding */
+      font-size: clamp(0.9rem, 3vw, 1rem); /* Responsive font size */
       border: none;
       border-radius: 0.5rem;
-      background: #ffcc80;
+      background: #ffcc80; /* Mithai color */
       color: #4e342e;
       cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.2s ease;
+    }
+    #restart-btn:hover {
+        background-color: #ffb74d; /* Darker shade on hover */
     }
 
+
+    /* Styling for Info Sections */
+    #challenge, #challenge-progress, #sweet-fact, #score-board, #move-counter, #score-display {
+        text-align: center;
+        margin: 0.4rem auto; /* Consistent vertical margin */
+        max-width: 95%;   /* Prevent text from touching edges */
+        width: var(--max-board-width); /* Align width with board on larger screens */
+        padding: 0 0.5rem; /* Add horizontal padding */
+    }
+
+    /* Leaderboard List Styling */
     #score-board ol {
-      margin: 0.3rem auto;
-      padding-left: 1.2rem;
-      text-align: left;
+        margin: 0.3rem auto;
+        padding-left: 1.2rem; /* Keep padding for list numbers */
+        display: inline-block; /* Allows centering of the list block */
+        text-align: left; /* Align list items text to the left */
     }
 
+    #leaderboard-list li {
+      font-size: clamp(0.8rem, 2.5vw, 0.9rem); /* Responsive font size */
+      margin-bottom: 0.2rem; /* Space between list items */
+    }
+
+    /* Keyframe animation for tile pop */
     @keyframes pop {
-      0% { transform: scale(0.5); }
-      100% { transform: scale(1); }
+      0% { transform: scale(0.5); opacity: 0.5; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Media Query for very small screens */
+    @media (max-width: 360px) {
+      :root {
+        --tile-size-base: 17vw; /* Slightly smaller tiles */
+        --gap-base: 1.5vw;     /* Slightly smaller gap */
+      }
+       h1 { font-size: 1.4rem; }
+       h2 { font-size: 1.0rem; }
+       .tile { font-size: 0.65rem; border-radius: 0.5rem; } /* Further reduce font size */
+       body { padding: 0.5rem; }
+       #restart-btn { padding: 0.6rem 1.2rem; }
     }
   </style>
 </head>
 <body>
   <h1>Mithai Merge Mania</h1>
+
   <h2 id="score-display">🏆 Score: 0</h2>
+
   <div id="challenge">🎯 Daily Challenge: Loading...</div>
   <h3 id="challenge-progress">Progress: 0 / 0</h3>
+
   <div class="game-container" id="game-board">
     <div id="game-over">
-      😢 Out of sweets! Come back tomorrow for more mithai magic!
+      <p>😢 Out of sweets!</p>
+      <p>Come back tomorrow for more mithai magic!</p>
       <button id="restart-btn">Restart</button>
     </div>
   </div>
+
   <div id="sweet-fact">🍬 Sweet Fact will appear here!</div>
+
   <div id="score-board">
     💯 Leaderboard - Top Mithai Masters:
-    <ol id="leaderboard-list"></ol>
+    <ol id="leaderboard-list">
+      </ol>
   </div>
+
   <div id="move-counter">🎮 Moves: 0</div>
 
-  <audio id="move-sound" src="move.mp3" preload="auto"></audio>
-  <audio id="merge-sound" src="merge.mp3" preload="auto"></audio>
-
   <script>
+    // --- Mithai Data ---
     const mithaiNames = {
       2: 'Boondi', 4: 'Motichoor', 8: 'Barfi', 16: 'Kaju Katli',
       32: 'Rasgulla', 64: 'Gulab Jamun', 128: 'Rasmalai',
@@ -151,52 +222,27 @@
     };
 
     const mithaiColors = {
-      2: '#fbeec1', 4: '#f3d250', 8: '#f0b64c', 16: '#ec9f4a',
-      32: '#e27d60', 64: '#c38d9e', 128: '#85cdca', 256: '#41b3a3',
-      512: '#e8a87c', 1024: '#c38d9e', 2048: '#8ee4af'
+       2: '#fbeec1',  4: '#f3d250',  8: '#f0b64c',  16: '#ec9f4a', // Warmer tones
+      32: '#e27d60', 64: '#c38d9e', 128: '#85cdca', 256: '#41b3a3', // Cooler tones
+     512: '#e8a87c',1024: '#c38d9e', 2048: '#8ee4af' // Higher values
     };
 
     const sweetFacts = [
-    "Boondi is made from chickpea flour and is a crucial ingredient in making both sweet and savory ladoos.",
-    "Motichoor laddoos are famous for their tiny, delicate boondi pearls, often prepared during special occasions like weddings and festivals.",
-    "Barfi is a soft, milk-based sweet that comes in various flavors like chocolate, pistachio, and mango.",
-    "Kaju Katli, one of India's most popular sweets, is made by blending cashew nuts with sugar syrup and cardamom, creating a smooth, melt-in-your-mouth texture.",
-    "Rasgulla, originally from Bengal, is made from chhena (cottage cheese) and soaked in a light, sugary syrup, creating a spongy, soft dessert.",
-    "Gulab Jamun is made from milk solids and flour, deep-fried, and then soaked in a fragrant sugar syrup flavored with rose water or cardamom.",
-    "Rasmalai is a creamy dessert made from soft white cream and chhena, flavored with cardamom and saffron, often served chilled.",
-    "Jalebi, a crispy, syrupy treat, is made by deep-frying a batter in circular shapes and then soaking it in sugar syrup, making it crispy on the outside and soft on the inside.",
-    "Ghewar is a delicate, honeycomb-like dessert from Rajasthan, often served during Teej or Raksha Bandhan festivals. It is soaked in sugar syrup and topped with dry fruits.",
-    "Gulkand, a sweet preserve of rose petals and sugar, is not only delicious but is believed to have cooling properties and health benefits, often used in desserts like kulfi and lassi.",
-    "Thali is not just a meal but an experience that often ends with a variety of sweets like rasgulla, jalebi, or gulab jamun, making it a perfect finale to a festive feast.",
-    "Boondi is also used to make raita and can be added to savory dishes like biryani for a delightful contrast.",
-    "The tiny balls of Motichoor laddoo are known for their beautiful golden color and delicate texture, making them a symbol of celebration in North India.",
-    "Barfi's origins are traced back to the Mughal era, and it is often served in a diamond or square shape for easy serving and sharing.",
-    "Kaju Katli is often garnished with edible silver leaf (varak), adding a luxurious touch to the already rich sweet.",
-    "Rasgulla was originally created in Odisha before becoming a well-loved dessert in Bengal, where it is often referred to as ‘Rasgulla’ or ‘Rasogolla’.",
-    "Gulab Jamun, when freshly made, is so soft that it melts in your mouth within seconds, and its syrup is often infused with aromatic spices like cardamom and saffron.",
-    "Rasmalai's origins can be traced back to Bengal, and it is often served during festivals like Holi and Diwali as a special treat.",
-    "Jalebi is commonly enjoyed as a street food, with vendors preparing it fresh and hot, making it a popular indulgence during festivals and holidays.",
-    "Ghewar has a long history in Rajasthan, and its intricate design requires expert craftsmanship to create the delicate honeycomb texture.",
-    "Gulkand is made by preserving rose petals in sugar, which intensifies their flavor and fragrance, making it a beloved ingredient in many traditional Indian desserts.",
-    "Thali sweets offer a wide range of textures and flavors, from creamy rasgulla to crispy jalebi, ensuring that there’s something for every sweet tooth.",
-    "Boondi laddoos are often prepared during festivals like Diwali and Ganesh Chaturthi as offerings to gods and goddesses.",
-    "The sweet, slightly chewy texture of Motichoor laddoos makes them the perfect bite-sized dessert for sharing with family and friends.",
-    "Barfi, while traditionally made from milk and sugar, can also be flavored with fruits like mango or coconut, giving it a unique taste each time.",
-    "Kaju Katli is often gifted during festive occasions like Diwali and weddings, symbolizing wealth and prosperity.",
-    "Rasgulla's delicate nature makes it difficult to preserve for long, which is why it is often made fresh for special occasions.",
-    "Gulab Jamun, when served warm, is considered a comfort food during the colder months of the year, offering a rich and indulgent treat.",
-    "Rasmalai is sometimes served with extra pistachios or almonds, elevating its richness and adding a nutty crunch.",
-    "Jalebi can be found in various regional variations, such as ‘Imarti’ in North India, which is made with a slightly different batter and fried in a similar shape.",
-    "Ghewar is traditionally associated with the Teej festival, where it is offered to newlyweds to celebrate marital bliss and prosperity.",
-    "Gulkand is sometimes paired with other sweets like kulfi or ice cream, giving them an aromatic, floral twist.",
-    "Thali desserts often include a mix of both rich and light sweets, balancing flavors like milk-based treats and fried dough-based ones.",
-    "Boondi is sometimes used as a topping for yogurt, creating a balance between the sweetness of the boondi and the tanginess of the yogurt.",
-    "Motichoor laddoos are made with a golden syrup that adds a beautiful hue and additional sweetness, making them visually striking.",
-    "Barfi is made using a slow-cooking process, which allows the milk to reduce and thicken, creating a creamy and rich texture.",
-    "Kaju Katli, with its simple ingredients of cashew nuts and sugar, is a representation of how Indian sweets can be both elegant and delicious."
-];
+      "Boondi is made from chickpea flour and is a crucial ingredient in making both sweet and savory ladoos.",
+      "Motichoor laddoos are famous for their tiny, delicate boondi pearls, often prepared during special occasions.",
+      "Barfi is a soft, milk-based sweet that comes in various flavors like chocolate, pistachio, and mango.",
+      "Kaju Katli, one of India's most popular sweets, is made by blending cashew nuts with sugar syrup.",
+      "Rasgulla, originally from Bengal/Odisha, is made from chhena (cottage cheese) soaked in light sugar syrup.",
+      "Gulab Jamun is made from milk solids, deep-fried, and soaked in a fragrant sugar syrup.",
+      "Rasmalai is a creamy dessert made from soft chhena discs soaked in thickened milk, flavored with cardamom.",
+      "Jalebi is made by deep-frying a fermented batter in circular shapes, then soaking it in sugar syrup.",
+      "Ghewar is a delicate, honeycomb-like dessert from Rajasthan, often served during Teej or Raksha Bandhan.",
+      "Gulkand, a sweet preserve of rose petals and sugar, is believed to have cooling properties.",
+      "A Thali often ends with a variety of sweets, making it a perfect finale to a festive feast.",
+      // Add more facts if desired...
+    ];
 
-
+    // --- DOM Elements ---
     const scoreDisplay = document.getElementById("score-display");
     const challengeBox = document.getElementById("challenge");
     const factBox = document.getElementById("sweet-fact");
@@ -205,258 +251,419 @@
     const restartBtn = document.getElementById("restart-btn");
     const leaderboardList = document.getElementById("leaderboard-list");
     const board = document.getElementById("game-board");
-    const moveSound = document.getElementById("move-sound");
-    const mergeSound = document.getElementById("merge-sound");
     const challengeProgress = document.getElementById("challenge-progress");
 
-    let grid = Array(4).fill(null).map(() => Array(4).fill(0));
-    let moveCount = 0;
-    let score = 0;
-    let mergeCounts = {};
-    let targetReached = false;
+    // --- Game State Variables ---
+    let grid;
+    let moveCount;
+    let score;
+    let mergeCounts; // Tracks merges for the challenge
+    let targetReached; // Flag for challenge completion
+    let targetValue; // Value needed for the challenge
+    let targetName; // Name of the sweet for the challenge
+    let targetAmount; // How many merges needed for the challenge
+    let hasWon; // Flag for reaching 2048
+    let startX, startY; // For touch controls
 
-    const challengeOptions = Object.entries(mithaiNames);
-    const today = new Date().toDateString();
-    const randomIndex = [...today].reduce((acc, char) => acc + char.charCodeAt(0), 0) % challengeOptions.length;
-    const [targetValue, targetName] = challengeOptions[randomIndex];
-    const targetAmount = (randomIndex % 3 + 2);
-    challengeBox.textContent = `🎯 Daily Challenge: Merge ${targetAmount} ${targetName}s Today!`;
-    challengeProgress.textContent = `Progress: 0 / ${targetAmount}`;
+    // --- Daily Challenge Setup ---
+    function setupDailyChallenge() {
+        const challengeOptions = Object.entries(mithaiNames).filter(([val]) => val >= 8 && val <= 512); // Exclude very low/high
+        const today = new Date().toDateString(); // Use date for consistent daily challenge
+        // Simple hash function based on date string to get a consistent index for the day
+        const dailyIndex = [...today].reduce((acc, char) => acc + char.charCodeAt(0), 0) % challengeOptions.length;
+        [targetValue, targetName] = challengeOptions[dailyIndex];
+        targetValue = parseInt(targetValue); // Ensure it's a number
+        // Target amount between 2 and 4 based on the index
+        targetAmount = (dailyIndex % 3) + 2;
+        challengeBox.textContent = `🎯 Daily Challenge: Merge ${targetAmount} ${targetName}s Today!`;
+        updateChallengeProgressDisplay(); // Initialize display
+    }
 
-    function updateScore() {
+    // --- Game Logic Functions ---
+
+    // Initialize or Reset Game
+    function initGame() {
+      grid = Array(4).fill(null).map(() => Array(4).fill(0)); // 4x4 grid filled with 0
+      moveCount = 0;
+      score = 0;
+      mergeCounts = {}; // Reset merge counts for challenge
+      targetReached = false;
+      hasWon = false;
+      gameOverBox.style.display = 'none'; // Hide game over screen
+
+      setupDailyChallenge(); // Set up the daily challenge
+      updateScoreDisplay();
+      updateMoveCounterDisplay();
+      updateLeaderboardDisplay(); // Load leaderboard from storage
+
+      // Spawn initial tiles
+      spawnTile();
+      spawnTile();
+      drawBoard(); // Initial draw
+      triggerSweetFact(); // Show initial fact
+    }
+
+    // Update Score Display
+    function updateScoreDisplay() {
       scoreDisplay.textContent = `🏆 Score: ${score}`;
     }
 
-    function updateChallengeProgress(val) {
-      mergeCounts[val] = (mergeCounts[val] || 0) + 1;
-      if (val == targetValue) {
-        challengeProgress.textContent = `Progress: ${mergeCounts[val]} / ${targetAmount}`;
-        if (mergeCounts[val] >= targetAmount && !targetReached) {
+    // Update Challenge Progress Display
+    function updateChallengeProgressDisplay() {
+        const currentCount = mergeCounts[targetValue] || 0;
+        challengeProgress.textContent = `Progress: ${currentCount} / ${targetAmount}`;
+    }
+
+    // Update Challenge Progress Logic
+    function updateChallengeProgress(mergedValue) {
+      // Increment count for the specific merged value
+      mergeCounts[mergedValue] = (mergeCounts[mergedValue] || 0) + 1;
+
+      // Check if this merge contributes to the daily challenge
+      if (mergedValue == targetValue) {
+        updateChallengeProgressDisplay(); // Update the text display
+        // Check for challenge completion
+        if (!targetReached && (mergeCounts[mergedValue] >= targetAmount)) {
           targetReached = true;
-          setTimeout(() => alert(`🎯 Challenge Complete! You're a Mithai Champion!`), 300);
+          // Use a timeout to show the alert after the board updates
+          setTimeout(() => {
+              // Use a custom message box instead of alert
+              showCustomAlert(`🎯 Challenge Complete! You merged ${targetAmount} ${targetName}s! You're a Mithai Champion!`);
+          }, 300); // Delay slightly
         }
       }
     }
 
+    // Spawn a new tile (2 or 4) in a random empty cell
     function spawnTile() {
-      let empty = [];
+      let emptyCells = [];
       grid.forEach((row, r) => {
         row.forEach((val, c) => {
-          if (val === 0) empty.push([r, c]);
+          if (val === 0) {
+            emptyCells.push({ r, c });
+          }
         });
       });
-      if (empty.length === 0) return;
-      const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+
+      if (emptyCells.length === 0) return; // No space left
+
+      // Select a random empty cell
+      const { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      // Assign 2 (90% chance) or 4 (10% chance)
       grid[r][c] = Math.random() < 0.9 ? 2 : 4;
-      drawBoard();
     }
 
+    // Draw the current state of the board
     function drawBoard() {
-      board.querySelectorAll('.tile').forEach(t => t.remove());
+      // Clear previous tiles
+      board.innerHTML = ''; // Clear all children efficiently
+      // Re-add the game over overlay (it gets cleared by innerHTML)
+      board.appendChild(gameOverBox);
+
       grid.forEach((row) => {
         row.forEach((val) => {
           const tile = document.createElement('div');
           tile.classList.add('tile');
           if (val !== 0) {
-            tile.textContent = mithaiNames[val] || val;
-            tile.style.background = mithaiColors[val] || '#ffe0b2';
-            tile.classList.add('new');
+            tile.textContent = mithaiNames[val] || val; // Show name or number
+            tile.style.backgroundColor = mithaiColors[val] || '#3c3a32'; // Use specific color or a fallback
+             // Adjust text color for better contrast on darker backgrounds if needed
+            if (val > 4) { // Example: darker tiles might need lighter text
+                 const bgColor = mithaiColors[val];
+                 // Basic check for darkness (can be improved)
+                 if (bgColor && ['#e27d60', '#c38d9e', '#41b3a3', '#4e342e'].includes(bgColor.toLowerCase())) {
+                    tile.style.color = '#f9f6f2'; // Lighter text color
+                 } else {
+                    // FIX: Use the actual color value string, not CSS var() syntax
+                    tile.style.color = '#4e342e'; // Default dark text
+                 }
+            } else {
+                 // FIX: Use the actual color value string, not CSS var() syntax
+                 tile.style.color = '#4e342e'; // Default dark text
+            }
           } else {
-            tile.style.background = '#ffffff20';
+            // Style for empty tile
+            tile.style.backgroundColor = 'rgba(238, 228, 218, 0.35)';
           }
           board.appendChild(tile);
         });
       });
     }
 
-    function slide(row) {
-      let arr = row.filter(val => val);
+    // Slide and merge logic for a single row/column
+    function slideAndMerge(row) {
+      // 1. Filter out zeros
+      let arr = row.filter(val => val !== 0);
+      let merged = false; // Flag to track if merge happened in this slide
+
+      // 2. Merge adjacent equal tiles
       for (let i = 0; i < arr.length - 1; i++) {
         if (arr[i] === arr[i + 1]) {
-          arr[i] *= 2;
-          arr[i + 1] = 0;
-          score += arr[i];
-          updateScore();
-          updateChallengeProgress(arr[i]);
-          if (arr[i] === 2048 && !window.hasWon) {
-            window.hasWon = true;
-            setTimeout(() => alert("🎉 You've unlocked the Thali! You're a Mithai Master!"), 200);
+          arr[i] *= 2; // Double the value
+          score += arr[i]; // Add to score
+          updateChallengeProgress(arr[i]); // Update challenge progress
+          arr.splice(i + 1, 1); // Remove the merged tile
+          merged = true;
+
+          // Check for win condition (reaching 2048)
+          if (!hasWon && arr[i] === 2048) {
+             hasWon = true;
+             // Use timeout to show alert after board redraw
+             setTimeout(() => {
+                 // Use a custom message box instead of alert
+                 showCustomAlert("🎉 You've unlocked the Thali! You're a Mithai Master!");
+             }, 200);
           }
-          triggerSweetFact();
-          mergeSound.currentTime = 0;
-          mergeSound.play();
         }
       }
-      return arr.filter(val => val).concat(Array(4 - arr.filter(val => val).length).fill(0));
+
+      // 3. Create the new row with zeros padded at the end
+      let newRow = Array(4).fill(0);
+      arr.forEach((val, index) => {
+        newRow[index] = val;
+      });
+
+      return newRow;
     }
 
-    function move(dir) {
-      let rotated = false;
-      if (dir === 'up' || dir === 'down') {
-        grid = grid[0].map((_, i) => grid.map(row => row[i]));
-        rotated = true;
-      }
-      if (dir === 'right' || dir === 'down') {
-        grid = grid.map(row => row.reverse());
-      }
-      let newGrid = grid.map(row => slide(row));
-      if (dir === 'right' || dir === 'down') {
-        newGrid = newGrid.map(row => row.reverse());
-      }
-      if (rotated) {
-        newGrid = newGrid[0].map((_, i) => newGrid.map(row => row[i]));
-      }
-      if (JSON.stringify(grid) !== JSON.stringify(newGrid)) {
-        grid = newGrid;
-        spawnTile();
-        moveCount++;
-        updateMoveCounter();
-        moveSound.currentTime = 0;
-        moveSound.play();
-        if (isGameOver()) showGameOver();
-      }
+    // Rotate the grid 90 degrees clockwise
+    function rotateGrid(currentGrid) {
+        const newGrid = Array(4).fill(null).map(() => Array(4).fill(0));
+        for (let r = 0; r < 4; r++) {
+            for (let c = 0; c < 4; c++) {
+                newGrid[c][3 - r] = currentGrid[r][c];
+            }
+        }
+        return newGrid;
     }
 
-    function updateMoveCounter() {
+
+    // Handle player move (left, right, up, down)
+    function move(direction) {
+        let originalGrid = JSON.stringify(grid); // Store initial state to check if changes occur
+        let tempGrid = grid.map(row => [...row]); // Create a copy to work with
+
+        // Rotate grid for up/down moves so we only need left-slide logic
+        if (direction === 'up') {
+            tempGrid = rotateGrid(rotateGrid(rotateGrid(tempGrid))); // Rotate 270 degrees
+        } else if (direction === 'right') {
+            tempGrid = rotateGrid(rotateGrid(tempGrid)); // Rotate 180 degrees
+        } else if (direction === 'down') {
+            tempGrid = rotateGrid(tempGrid); // Rotate 90 degrees
+        }
+
+        // Slide and merge each row (which corresponds to the correct direction due to rotation)
+        let moved = false;
+        for (let r = 0; r < 4; r++) {
+            const originalRow = JSON.stringify(tempGrid[r]);
+            tempGrid[r] = slideAndMerge(tempGrid[r]);
+            if (JSON.stringify(tempGrid[r]) !== originalRow) {
+                moved = true; // A change occurred in this row
+            }
+        }
+
+        // Rotate grid back to original orientation
+        if (direction === 'up') {
+            tempGrid = rotateGrid(tempGrid); // Rotate back 90
+        } else if (direction === 'right') {
+            tempGrid = rotateGrid(rotateGrid(tempGrid)); // Rotate back 180
+        } else if (direction === 'down') {
+            tempGrid = rotateGrid(rotateGrid(rotateGrid(tempGrid))); // Rotate back 270
+        }
+
+        // If the grid actually changed after the move
+        if (moved) {
+            grid = tempGrid; // Update the main grid
+            spawnTile(); // Add a new tile
+            drawBoard(); // Redraw the board
+            moveCount++;
+            updateMoveCounterDisplay();
+            updateScoreDisplay();
+            triggerSweetFact(); // Show a new fact on successful move
+
+            // Check for game over condition after the move
+            if (isGameOver()) {
+                showGameOver();
+            }
+        }
+    }
+
+
+    // Update Move Counter Display
+    function updateMoveCounterDisplay() {
       moveCounter.textContent = `🎮 Moves: ${moveCount}`;
     }
 
+    // Display a random sweet fact
     function triggerSweetFact() {
       const fact = sweetFacts[Math.floor(Math.random() * sweetFacts.length)];
       factBox.textContent = "🍬 " + fact;
     }
 
+    // Check if the game is over (no empty cells and no possible merges)
     function isGameOver() {
       for (let r = 0; r < 4; r++) {
         for (let c = 0; c < 4; c++) {
+          // Check for empty cell
           if (grid[r][c] === 0) return false;
+          // Check for horizontal merge possibility
           if (c < 3 && grid[r][c] === grid[r][c + 1]) return false;
+          // Check for vertical merge possibility
           if (r < 3 && grid[r][c] === grid[r + 1][c]) return false;
         }
       }
+      // If no empty cells and no merges possible, game is over
       return true;
     }
 
-    function updateLeaderboard() {
+    // Update and Display Leaderboard
+    function updateLeaderboardDisplay() {
       const scores = JSON.parse(localStorage.getItem("mithaiScores") || "[]");
-      scores.push(score);
+      // Sort scores descending and take top 3
       const sorted = scores.sort((a, b) => b - a).slice(0, 3);
-      localStorage.setItem("mithaiScores", JSON.stringify(sorted));
+      // Update the list in the HTML
       leaderboardList.innerHTML = sorted.map(s => `<li>${s} points</li>`).join("");
-    }
-
-    function showGameOver() {
-      gameOverBox.style.display = 'flex';
-      updateLeaderboard();
-    }
-
-    restartBtn.addEventListener('click', () => {
-      grid = Array(4).fill(null).map(() => Array(4).fill(0));
-      moveCount = 0;
-      score = 0;
-      mergeCounts = {};
-      targetReached = false;
-      window.hasWon = false;
-      updateMoveCounter();
-      updateScore();
-      challengeProgress.textContent = `Progress: 0 / ${targetAmount}`;
-      gameOverBox.style.display = 'none';
-      spawnTile();
-      spawnTile();
-    });
-
-    document.addEventListener('keydown', e => {
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-        move(e.key.replace('Arrow', '').toLowerCase());
-      }
-    });
-
-    board.addEventListener('touchstart', e => {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-    });
-
-    board.addEventListener('touchend', e => {
-      const dx = e.changedTouches[0].clientX - startX;
-      const dy = e.changedTouches[0].clientY - startY;
-      if (Math.abs(dx) > Math.abs(dy)) {
-        move(dx > 0 ? 'right' : 'left');
-      } else {
-        move(dy > 0 ? 'down' : 'up');
-      }
-    });
-
-    let startX, startY;
-
-    board.addEventListener('touchstart', e => {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-    });
-
-    board.addEventListener('touchend', e => {
-      const dx = e.changedTouches[0].clientX - startX;
-      const dy = e.changedTouches[0].clientY - startY;
-      if (Math.abs(dx) > Math.abs(dy)) {
-        move(dx > 0 ? 'right' : 'left');
-      } else {
-        move(dy > 0 ? 'down' : 'up');
-      }
-    });
-
-    function init() {
-      spawnTile();
-      spawnTile();
-      updateLeaderboard();
-      updateScore();
-    }
-
-    init();
-
-
-    function isGameOver() {
-      for (let r = 0; r < 4; r++) {
-        for (let c = 0; c < 4; c++) {
-          if (grid[r][c] === 0) return false;
-          if (c < 3 && grid[r][c] === grid[r][c + 1]) return false;
-          if (r < 3 && grid[r][c] === grid[r + 1][c]) return false;
+       // If no scores yet, display a message
+        if (sorted.length === 0) {
+            leaderboardList.innerHTML = "<li>No scores yet!</li>";
         }
-      }
-      return true;
     }
 
+    // Save score to leaderboard (localStorage)
+    function saveScoreToLeaderboard() {
+        const scores = JSON.parse(localStorage.getItem("mithaiScores") || "[]");
+        scores.push(score); // Add current score
+        // Sort descending and keep only top 3 (or more if desired)
+        const sorted = scores.sort((a, b) => b - a).slice(0, 3);
+        localStorage.setItem("mithaiScores", JSON.stringify(sorted));
+        updateLeaderboardDisplay(); // Update the display immediately
+    }
+
+
+    // Show the Game Over screen
     function showGameOver() {
-      gameOverBox.style.display = "flex";
+      saveScoreToLeaderboard(); // Save score when game ends
+      gameOverBox.style.display = 'flex'; // Make the overlay visible
     }
 
-    function restartGame() {
-      grid = Array(4).fill(null).map(() => Array(4).fill(0));
-      moveCount = 0;
-      score = 0;
-      mergeCounts = {};
-      targetReached = false;
-      gameOverBox.style.display = "none";
-      updateScore();
-      updateMoveCounter();
-      challengeProgress.textContent = `Progress: 0 / ${targetAmount}`;
-      spawnTile();
-      spawnTile();
-      drawBoard();
+    // --- Custom Alert Function ---
+    function showCustomAlert(message) {
+        // Check if an alert box already exists
+        let existingAlert = document.getElementById('custom-alert-box');
+        if (existingAlert) {
+            existingAlert.remove(); // Remove old alert if present
+        }
+
+        // Create the alert box elements
+        const alertBox = document.createElement('div');
+        alertBox.id = 'custom-alert-box';
+        alertBox.style.position = 'fixed';
+        alertBox.style.left = '50%';
+        alertBox.style.top = '20%';
+        alertBox.style.transform = 'translateX(-50%)';
+        alertBox.style.backgroundColor = '#fff3e0'; // Light background
+        alertBox.style.padding = '20px';
+        alertBox.style.border = '2px solid #ffcc80'; // Border color
+        alertBox.style.borderRadius = '10px';
+        alertBox.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+        alertBox.style.zIndex = '1000'; // Ensure it's on top
+        alertBox.style.textAlign = 'center';
+        alertBox.style.color = '#4e342e'; // Font color
+        alertBox.style.maxWidth = '80%';
+
+        const messageP = document.createElement('p');
+        messageP.textContent = message;
+        messageP.style.marginBottom = '15px';
+        messageP.style.fontSize = 'clamp(1rem, 4vw, 1.2rem)';
+
+        const closeButton = document.createElement('button');
+        closeButton.textContent = 'OK';
+        closeButton.style.padding = '8px 16px';
+        closeButton.style.border = 'none';
+        closeButton.style.borderRadius = '5px';
+        closeButton.style.backgroundColor = '#ffcc80';
+        closeButton.style.color = '#4e342e';
+        closeButton.style.fontWeight = 'bold';
+        closeButton.style.cursor = 'pointer';
+
+        // Add event listener to close the alert box
+        closeButton.onclick = function() {
+            alertBox.remove();
+        };
+
+        // Append elements
+        alertBox.appendChild(messageP);
+        alertBox.appendChild(closeButton);
+        document.body.appendChild(alertBox);
     }
 
-    // Controls
-    window.addEventListener('keydown', (e) => {
+
+    // --- Event Listeners ---
+
+    // Keyboard Controls
+    document.addEventListener('keydown', (e) => {
+      // Check if the game over screen is active or custom alert is shown
+       if (gameOverBox.style.display === 'flex' || document.getElementById('custom-alert-box')) return;
+
       switch (e.key) {
-        case 'ArrowLeft': move('left'); break;
+        case 'ArrowUp':    move('up'); break;
+        case 'ArrowDown':  move('down'); break;
+        case 'ArrowLeft':  move('left'); break;
         case 'ArrowRight': move('right'); break;
-        case 'ArrowUp': move('up'); break;
-        case 'ArrowDown': move('down'); break;
       }
     });
 
-    restartBtn.addEventListener('click', restartGame);
+    // Touch Controls
+    board.addEventListener('touchstart', (e) => {
+       // Check if the game over screen is active or custom alert is shown
+       if (gameOverBox.style.display === 'flex' || document.getElementById('custom-alert-box')) return;
+       startX = e.touches[0].clientX;
+       startY = e.touches[0].clientY;
+    }, { passive: true }); // Use passive for performance
 
-    // Initial Game Setup
-    restartGame();       
+    board.addEventListener('touchmove', (e) => {
+        // Prevent scrolling while swiping on the board only if not game over/alert
+        if (gameOverBox.style.display !== 'flex' && !document.getElementById('custom-alert-box')) {
+             e.preventDefault();
+        }
+    }, { passive: false }); // Need false to use preventDefault
+
+    board.addEventListener('touchend', (e) => {
+       // Check if the game over screen is active or custom alert is shown
+       if (gameOverBox.style.display === 'flex' || document.getElementById('custom-alert-box')) return;
+       if (!startX || !startY) return; // Ensure start coordinates exist
+
+       const endX = e.changedTouches[0].clientX;
+       const endY = e.changedTouches[0].clientY;
+
+       const dx = endX - startX;
+       const dy = endY - startY;
+       const threshold = 30; // Minimum swipe distance
+
+       // Determine swipe direction based on largest distance moved
+       if (Math.abs(dx) > Math.abs(dy)) {
+         // Horizontal swipe
+         if (Math.abs(dx) > threshold) {
+            move(dx > 0 ? 'right' : 'left');
+         }
+       } else {
+         // Vertical swipe
+          if (Math.abs(dy) > threshold) {
+            move(dy > 0 ? 'down' : 'up');
+          }
+       }
+
+       // Reset start coordinates
+       startX = null;
+       startY = null;
+    });
+
+    // Restart Button
+    restartBtn.addEventListener('click', initGame);
+
+    // --- Initial Game Start ---
+    initGame(); // Start the game when the script loads
+
   </script>
 </body>
 </html>
