@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mithai Merge Mania</title>
+  <style>
+    :root {
+      --tile-size: 80px;
+      --gap: 10px;
+      --bg-color: #f5eee6;
+      --board-bg: #fff3e0;
+      --tile-bg: #ffe0b2;
+      --font-color: #4e342e;
+      --font-family: 'Segoe UI', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: url('https://www.transparenttextures.com/patterns/wood-pattern.png') repeat;
+      font-family: var(--font-family);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+      min-height: 100vh;
+    }
+
+    h1, h2, h3 {
+      margin: 0.5rem 0;
+      color: #6d4c41;
+      text-shadow: 1px 1px #fff3e0;
+    }
+
+    h1 {
+      font-size: 2rem;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+    }
+
+    h3 {
+      font-size: 1rem;
+    }
+
+    .game-container {
+      max-width: 400px;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: var(--board-bg);
+      padding: var(--gap);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-gap: var(--gap);
+      border-radius: 1rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .tile {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 0.75rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--font-color);
+      transition: transform 0.2s, background 0.2s;
+      box-shadow: inset 0 0 8px #ffffff70;
+    }
+
+    .tile.new {
+      animation: pop 0.2s ease;
+    }
+
+    #game-over {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 248, 225, 0.95);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem;
+      color: #6d4c41;
+      border-radius: 1rem;
+      z-index: 10;
+      display: none;
+    }
+
+    #restart-btn {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      background: #ffcc80;
+      color: #4e342e;
+      cursor: pointer;
+    }
+
+    #score-board ol {
+      margin: 0.3rem auto;
+      padding-left: 1.2rem;
+      text-align: left;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.5); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Mithai Merge Mania</h1>
+  <h2 id="score-display">🏆 Score: 0</h2>
+  <div id="challenge">🎯 Daily Challenge: Loading...</div>
+  <h3 id="challenge-progress">Progress: 0 / 0</h3>
+  <div class="game-container" id="game-board">
+    <div id="game-over">
+      😢 Out of sweets! Come back tomorrow for more mithai magic!
+      <button id="restart-btn">Restart</button>
+    </div>
+  </div>
+  <div id="sweet-fact">🍬 Sweet Fact will appear here!</div>
+  <div id="score-board">
+    💯 Leaderboard - Top Mithai Masters:
+    <ol id="leaderboard-list"></ol>
+  </div>
+  <div id="move-counter">🎮 Moves: 0</div>
+
+  <audio id="move-sound" src="move.mp3" preload="auto"></audio>
+  <audio id="merge-sound" src="merge.mp3" preload="auto"></audio>
+
+  <script>
+    const mithaiNames = {
+      2: 'Boondi', 4: 'Motichoor', 8: 'Barfi', 16: 'Kaju Katli',
+      32: 'Rasgulla', 64: 'Gulab Jamun', 128: 'Rasmalai',
+      256: 'Jalebi', 512: 'Ghewar', 1024: 'Gulkand', 2048: 'Thali'
+    };
+
+    const mithaiColors = {
+      2: '#fbeec1', 4: '#f3d250', 8: '#f0b64c', 16: '#ec9f4a',
+      32: '#e27d60', 64: '#c38d9e', 128: '#85cdca', 256: '#41b3a3',
+      512: '#e8a87c', 1024: '#c38d9e', 2048: '#8ee4af'
+    };
+
+    const sweetFacts = [
+    "Boondi is made from chickpea flour and is a crucial ingredient in making both sweet and savory ladoos.",
+    "Motichoor laddoos are famous for their tiny, delicate boondi pearls, often prepared during special occasions like weddings and festivals.",
+    "Barfi is a soft, milk-based sweet that comes in various flavors like chocolate, pistachio, and mango.",
+    "Kaju Katli, one of India's most popular sweets, is made by blending cashew nuts with sugar syrup and cardamom, creating a smooth, melt-in-your-mouth texture.",
+    "Rasgulla, originally from Bengal, is made from chhena (cottage cheese) and soaked in a light, sugary syrup, creating a spongy, soft dessert.",
+    "Gulab Jamun is made from milk solids and flour, deep-fried, and then soaked in a fragrant sugar syrup flavored with rose water or cardamom.",
+    "Rasmalai is a creamy dessert made from soft white cream and chhena, flavored with cardamom and saffron, often served chilled.",
+    "Jalebi, a crispy, syrupy treat, is made by deep-frying a batter in circular shapes and then soaking it in sugar syrup, making it crispy on the outside and soft on the inside.",
+    "Ghewar is a delicate, honeycomb-like dessert from Rajasthan, often served during Teej or Raksha Bandhan festivals. It is soaked in sugar syrup and topped with dry fruits.",
+    "Gulkand, a sweet preserve of rose petals and sugar, is not only delicious but is believed to have cooling properties and health benefits, often used in desserts like kulfi and lassi.",
+    "Thali is not just a meal but an experience that often ends with a variety of sweets like rasgulla, jalebi, or gulab jamun, making it a perfect finale to a festive feast.",
+    "Boondi is also used to make raita and can be added to savory dishes like biryani for a delightful contrast.",
+    "The tiny balls of Motichoor laddoo are known for their beautiful golden color and delicate texture, making them a symbol of celebration in North India.",
+    "Barfi's origins are traced back to the Mughal era, and it is often served in a diamond or square shape for easy serving and sharing.",
+    "Kaju Katli is often garnished with edible silver leaf (varak), adding a luxurious touch to the already rich sweet.",
+    "Rasgulla was originally created in Odisha before becoming a well-loved dessert in Bengal, where it is often referred to as ‘Rasgulla’ or ‘Rasogolla’.",
+    "Gulab Jamun, when freshly made, is so soft that it melts in your mouth within seconds, and its syrup is often infused with aromatic spices like cardamom and saffron.",
+    "Rasmalai's origins can be traced back to Bengal, and it is often served during festivals like Holi and Diwali as a special treat.",
+    "Jalebi is commonly enjoyed as a street food, with vendors preparing it fresh and hot, making it a popular indulgence during festivals and holidays.",
+    "Ghewar has a long history in Rajasthan, and its intricate design requires expert craftsmanship to create the delicate honeycomb texture.",
+    "Gulkand is made by preserving rose petals in sugar, which intensifies their flavor and fragrance, making it a beloved ingredient in many traditional Indian desserts.",
+    "Thali sweets offer a wide range of textures and flavors, from creamy rasgulla to crispy jalebi, ensuring that there’s something for every sweet tooth.",
+    "Boondi laddoos are often prepared during festivals like Diwali and Ganesh Chaturthi as offerings to gods and goddesses.",
+    "The sweet, slightly chewy texture of Motichoor laddoos makes them the perfect bite-sized dessert for sharing with family and friends.",
+    "Barfi, while traditionally made from milk and sugar, can also be flavored with fruits like mango or coconut, giving it a unique taste each time.",
+    "Kaju Katli is often gifted during festive occasions like Diwali and weddings, symbolizing wealth and prosperity.",
+    "Rasgulla's delicate nature makes it difficult to preserve for long, which is why it is often made fresh for special occasions.",
+    "Gulab Jamun, when served warm, is considered a comfort food during the colder months of the year, offering a rich and indulgent treat.",
+    "Rasmalai is sometimes served with extra pistachios or almonds, elevating its richness and adding a nutty crunch.",
+    "Jalebi can be found in various regional variations, such as ‘Imarti’ in North India, which is made with a slightly different batter and fried in a similar shape.",
+    "Ghewar is traditionally associated with the Teej festival, where it is offered to newlyweds to celebrate marital bliss and prosperity.",
+    "Gulkand is sometimes paired with other sweets like kulfi or ice cream, giving them an aromatic, floral twist.",
+    "Thali desserts often include a mix of both rich and light sweets, balancing flavors like milk-based treats and fried dough-based ones.",
+    "Boondi is sometimes used as a topping for yogurt, creating a balance between the sweetness of the boondi and the tanginess of the yogurt.",
+    "Motichoor laddoos are made with a golden syrup that adds a beautiful hue and additional sweetness, making them visually striking.",
+    "Barfi is made using a slow-cooking process, which allows the milk to reduce and thicken, creating a creamy and rich texture.",
+    "Kaju Katli, with its simple ingredients of cashew nuts and sugar, is a representation of how Indian sweets can be both elegant and delicious."
+];
+
+
+    const scoreDisplay = document.getElementById("score-display");
+    const challengeBox = document.getElementById("challenge");
+    const factBox = document.getElementById("sweet-fact");
+    const moveCounter = document.getElementById("move-counter");
+    const gameOverBox = document.getElementById("game-over");
+    const restartBtn = document.getElementById("restart-btn");
+    const leaderboardList = document.getElementById("leaderboard-list");
+    const board = document.getElementById("game-board");
+    const moveSound = document.getElementById("move-sound");
+    const mergeSound = document.getElementById("merge-sound");
+    const challengeProgress = document.getElementById("challenge-progress");
+
+    let grid = Array(4).fill(null).map(() => Array(4).fill(0));
+    let moveCount = 0;
+    let score = 0;
+    let mergeCounts = {};
+    let targetReached = false;
+
+    const challengeOptions = Object.entries(mithaiNames);
+    const today = new Date().toDateString();
+    const randomIndex = [...today].reduce((acc, char) => acc + char.charCodeAt(0), 0) % challengeOptions.length;
+    const [targetValue, targetName] = challengeOptions[randomIndex];
+    const targetAmount = (randomIndex % 3 + 2);
+    challengeBox.textContent = `🎯 Daily Challenge: Merge ${targetAmount} ${targetName}s Today!`;
+    challengeProgress.textContent = `Progress: 0 / ${targetAmount}`;
+
+    function updateScore() {
+      scoreDisplay.textContent = `🏆 Score: ${score}`;
+    }
+
+    function updateChallengeProgress(val) {
+      mergeCounts[val] = (mergeCounts[val] || 0) + 1;
+      if (val == targetValue) {
+        challengeProgress.textContent = `Progress: ${mergeCounts[val]} / ${targetAmount}`;
+        if (mergeCounts[val] >= targetAmount && !targetReached) {
+          targetReached = true;
+          setTimeout(() => alert(`🎯 Challenge Complete! You're a Mithai Champion!`), 300);
+        }
+      }
+    }
+
+    function spawnTile() {
+      let empty = [];
+      grid.forEach((row, r) => {
+        row.forEach((val, c) => {
+          if (val === 0) empty.push([r, c]);
+        });
+      });
+      if (empty.length === 0) return;
+      const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+      grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+      drawBoard();
+    }
+
+    function drawBoard() {
+      board.querySelectorAll('.tile').forEach(t => t.remove());
+      grid.forEach((row) => {
+        row.forEach((val) => {
+          const tile = document.createElement('div');
+          tile.classList.add('tile');
+          if (val !== 0) {
+            tile.textContent = mithaiNames[val] || val;
+            tile.style.background = mithaiColors[val] || '#ffe0b2';
+            tile.classList.add('new');
+          } else {
+            tile.style.background = '#ffffff20';
+          }
+          board.appendChild(tile);
+        });
+      });
+    }
+
+    function slide(row) {
+      let arr = row.filter(val => val);
+      for (let i = 0; i < arr.length - 1; i++) {
+        if (arr[i] === arr[i + 1]) {
+          arr[i] *= 2;
+          arr[i + 1] = 0;
+          score += arr[i];
+          updateScore();
+          updateChallengeProgress(arr[i]);
+          if (arr[i] === 2048 && !window.hasWon) {
+            window.hasWon = true;
+            setTimeout(() => alert("🎉 You've unlocked the Thali! You're a Mithai Master!"), 200);
+          }
+          triggerSweetFact();
+          mergeSound.currentTime = 0;
+          mergeSound.play();
+        }
+      }
+      return arr.filter(val => val).concat(Array(4 - arr.filter(val => val).length).fill(0));
+    }
+
+    function move(dir) {
+      let rotated = false;
+      if (dir === 'up' || dir === 'down') {
+        grid = grid[0].map((_, i) => grid.map(row => row[i]));
+        rotated = true;
+      }
+      if (dir === 'right' || dir === 'down') {
+        grid = grid.map(row => row.reverse());
+      }
+      let newGrid = grid.map(row => slide(row));
+      if (dir === 'right' || dir === 'down') {
+        newGrid = newGrid.map(row => row.reverse());
+      }
+      if (rotated) {
+        newGrid = newGrid[0].map((_, i) => newGrid.map(row => row[i]));
+      }
+      if (JSON.stringify(grid) !== JSON.stringify(newGrid)) {
+        grid = newGrid;
+        spawnTile();
+        moveCount++;
+        updateMoveCounter();
+        moveSound.currentTime = 0;
+        moveSound.play();
+        if (isGameOver()) showGameOver();
+      }
+    }
+
+    function updateMoveCounter() {
+      moveCounter.textContent = `🎮 Moves: ${moveCount}`;
+    }
+
+    function triggerSweetFact() {
+      const fact = sweetFacts[Math.floor(Math.random() * sweetFacts.length)];
+      factBox.textContent = "🍬 " + fact;
+    }
+
+    function isGameOver() {
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          if (grid[r][c] === 0) return false;
+          if (c < 3 && grid[r][c] === grid[r][c + 1]) return false;
+          if (r < 3 && grid[r][c] === grid[r + 1][c]) return false;
+        }
+      }
+      return true;
+    }
+
+    function updateLeaderboard() {
+      const scores = JSON.parse(localStorage.getItem("mithaiScores") || "[]");
+      scores.push(score);
+      const sorted = scores.sort((a, b) => b - a).slice(0, 3);
+      localStorage.setItem("mithaiScores", JSON.stringify(sorted));
+      leaderboardList.innerHTML = sorted.map(s => `<li>${s} points</li>`).join("");
+    }
+
+    function showGameOver() {
+      gameOverBox.style.display = 'flex';
+      updateLeaderboard();
+    }
+
+    restartBtn.addEventListener('click', () => {
+      grid = Array(4).fill(null).map(() => Array(4).fill(0));
+      moveCount = 0;
+      score = 0;
+      mergeCounts = {};
+      targetReached = false;
+      window.hasWon = false;
+      updateMoveCounter();
+      updateScore();
+      challengeProgress.textContent = `Progress: 0 / ${targetAmount}`;
+      gameOverBox.style.display = 'none';
+      spawnTile();
+      spawnTile();
+    });
+
+    document.addEventListener('keydown', e => {
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        move(e.key.replace('Arrow', '').toLowerCase());
+      }
+    });
+
+    board.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    });
+
+    board.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        move(dx > 0 ? 'right' : 'left');
+      } else {
+        move(dy > 0 ? 'down' : 'up');
+      }
+    });
+
+    let startX, startY;
+
+    board.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    });
+
+    board.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        move(dx > 0 ? 'right' : 'left');
+      } else {
+        move(dy > 0 ? 'down' : 'up');
+      }
+    });
+
+    function init() {
+      spawnTile();
+      spawnTile();
+      updateLeaderboard();
+      updateScore();
+    }
+
+    init();
+
+
+    function isGameOver() {
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          if (grid[r][c] === 0) return false;
+          if (c < 3 && grid[r][c] === grid[r][c + 1]) return false;
+          if (r < 3 && grid[r][c] === grid[r + 1][c]) return false;
+        }
+      }
+      return true;
+    }
+
+    function showGameOver() {
+      gameOverBox.style.display = "flex";
+    }
+
+    function restartGame() {
+      grid = Array(4).fill(null).map(() => Array(4).fill(0));
+      moveCount = 0;
+      score = 0;
+      mergeCounts = {};
+      targetReached = false;
+      gameOverBox.style.display = "none";
+      updateScore();
+      updateMoveCounter();
+      challengeProgress.textContent = `Progress: 0 / ${targetAmount}`;
+      spawnTile();
+      spawnTile();
+      drawBoard();
+    }
+
+    // Controls
+    window.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowLeft': move('left'); break;
+        case 'ArrowRight': move('right'); break;
+        case 'ArrowUp': move('up'); break;
+        case 'ArrowDown': move('down'); break;
+      }
+    });
+
+    restartBtn.addEventListener('click', restartGame);
+
+    // Initial Game Setup
+    restartGame();       
+  </script>
+</body>
+</html>
